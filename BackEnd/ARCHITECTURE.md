@@ -5,16 +5,14 @@
 The Internship Skill Tracker backend is a **Node.js + Express + MongoDB** REST API that manages user portfolios, skills, professional records, and automated skill decay tracking.
 
 ### Technology Stack
-- **Runtime**: Node.js (ES Modules)
+- **Runtime**: Node.js (ES Modules support)
 - **Framework**: Express 4.18.2
-- **Database**: MongoDB with Mongoose 8.0.0
-- **Authentication**: JWT with 30-minute token expiry
-- **Security**: bcryptjs (password hashing, 10 salt rounds)
-- **File Uploads**: Multer (5MB limit, whitelisted formats)
-- **PDF Generation**: PDFKit
-- **Scheduling**: Node-cron (daily skill decay job)
-
----
+- **Database**: MongoDB with Mongoose ODM 8.0.0
+- **Authentication**: JWT (30-minute token expiry)
+- **Security**: bcryptjs for password hashing (10 salt rounds)
+- **File Uploads**: Multer (5MB size limit, format whitelist)
+- **PDF Generation**: PDFKit library
+- **Scheduling**: Node-cron (runs daily skill decay job)
 
 ## Architecture Layers
 
