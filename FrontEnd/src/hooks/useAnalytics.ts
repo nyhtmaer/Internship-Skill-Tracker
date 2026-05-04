@@ -1,16 +1,19 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '../services/apiClient';
 
+// Extracted the inline type into its own interface
+export interface SkillAnalyticsItem {
+  _id: string;
+  skill_name: string;
+  skill_level: number;
+  last_updated: string;
+  decay_rate: number;
+  days_since_practiced: number;
+}
+
 interface AnalyticsData {
   success: boolean;
-  data: Array<{
-    _id: string;
-    skill_name: string;
-    skill_level: number;
-    last_updated: string;
-    decay_rate: number;
-    days_since_practiced: number;
-  }>;
+  data: SkillAnalyticsItem[]; // Swapped to use the new interface
   summary?: {
     total_skills: number;
     decaying_skills: number;
