@@ -1,6 +1,6 @@
 # Portfolio Tracker - Implementation Summary
 
-## 🎯 What We Built
+##  What We Built
 
 A **desktop-first, data-driven internship and skill portfolio tracker** with a modern startup aesthetic, featuring:
 
@@ -12,7 +12,7 @@ A **desktop-first, data-driven internship and skill portfolio tracker** with a m
 
 ---
 
-## 📦 Custom Components Created
+##  Custom Components Created
 
 ### Core UI Components (Pure Code)
 
@@ -138,7 +138,7 @@ A **desktop-first, data-driven internship and skill portfolio tracker** with a m
 
 ---
 
-## 🎨 Pure Code Features
+##  Pure Code Features
 
 ### Custom Interactions Built Without Libraries
 
@@ -176,7 +176,7 @@ A **desktop-first, data-driven internship and skill portfolio tracker** with a m
 
 ---
 
-## 🎯 Technical Highlights
+##  Technical Highlights
 
 ### Zero Dependencies (Beyond Core)
 - **No Radix UI** - All modals, dropdowns, tooltips built from scratch
@@ -201,7 +201,7 @@ A **desktop-first, data-driven internship and skill portfolio tracker** with a m
 
 ---
 
-## 📊 Data Architecture
+##  Data Architecture
 
 ### Mock Data Structure
 All data is currently mocked with realistic examples:
@@ -252,7 +252,7 @@ interface Evidence {
 
 ---
 
-## 🎨 Design System
+##  Design System
 
 ### Color Tokens
 Using CSS custom properties for theme-aware colors:
@@ -282,7 +282,7 @@ Tailwind's spacing scale (4px base unit):
 
 ---
 
-## 🚀 Advanced Features Implemented
+##  Advanced Features Implemented
 
 1. **Command Palette** (⌘K)
    - Searchable command list
@@ -316,7 +316,7 @@ Tailwind's spacing scale (4px base unit):
 
 ---
 
-## 📁 File Structure
+##  File Structure
 
 ```
 /src
@@ -345,7 +345,7 @@ Tailwind's spacing scale (4px base unit):
 
 ---
 
-## 🎓 Key Learnings & Techniques
+##  Key Learnings & Techniques
 
 ### 1. Custom Tooltip Implementation
 - Used `getBoundingClientRect()` for positioning
@@ -379,7 +379,7 @@ Tailwind's spacing scale (4px base unit):
 
 ---
 
-## 🎯 What Makes This Different
+##  What Makes This Different
 
 1. **No Component Library Bloat**
    - Every component purpose-built
@@ -407,27 +407,27 @@ Tailwind's spacing scale (4px base unit):
 
 ---
 
-## 💡 Why This Approach?
+##  Why This Approach?
 
 ### Advantages
-✅ Complete control over functionality
-✅ No library version conflicts
-✅ Smaller bundle size
-✅ Deeper understanding of mechanics
-✅ Easy to customize
-✅ No breaking changes from updates
-✅ Learn by building
+✅ **Complete control over functionality**
+✅ **No library version conflicts**
+✅ **Smaller bundle size**
+✅ **Deeper understanding of mechanics**
+✅ **Easy to customize**
+✅ **No breaking changes from updates**
+✅ **Learn by building**
 
 ### Trade-offs
-⚠️ More initial development time
-⚠️ Need to handle edge cases
-⚠️ Testing requires more coverage
-⚠️ Accessibility needs manual work
-⚠️ Cross-browser testing critical
+⚠️ **More initial development time**
+⚠️ **Need to handle edge cases**
+⚠️ **Testing requires more coverage**
+⚠️ **Accessibility needs manual work**
+⚠️ **Cross-browser testing critical**
 
 ---
 
-## 🔮 Future Enhancement Paths
+##  Future Enhancement Paths
 
 From `/IMPROVEMENTS.md`, prioritized quick wins:
 
@@ -447,7 +447,7 @@ Next up:
 
 ---
 
-## 🎨 Code Quality
+##  Code Quality
 
 ### TypeScript Usage
 - Interface definitions for all data types
@@ -471,7 +471,7 @@ Next up:
 
 ---
 
-## 📖 Usage Examples
+##  Usage Examples
 
 ### Using Custom Components
 
@@ -517,7 +517,7 @@ Next up:
 
 ---
 
-## 🎯 Conclusion
+##  Conclusion
 
 This implementation demonstrates that **you don't need heavy component libraries** to build sophisticated, interactive UIs. With React, TypeScript, Tailwind CSS, and vanilla JavaScript, you can create:
 
