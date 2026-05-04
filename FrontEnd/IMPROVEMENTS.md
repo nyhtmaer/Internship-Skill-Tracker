@@ -1,6 +1,6 @@
 # Portfolio Tracker - Directions for Improvement
 
-## 🎨 Visual & UX Enhancements
+##  Visual & UX Enhancements
 
 ### 1. **Micro-interactions & Animations**
 - Add skeleton loading states for data-heavy components
@@ -37,7 +37,7 @@
 
 ---
 
-## 🔧 Functional Enhancements
+##  Functional Enhancements
 
 ### 5. **Data Management**
 - **Import/Export**: JSON, CSV export of all data
@@ -73,7 +73,7 @@
 
 ---
 
-## 🎯 Advanced Features
+##  Advanced Features
 
 ### 9. **Collaboration & Sharing**
 - **Public Portfolio Page**: Shareable recruiter-friendly URL
@@ -108,7 +108,7 @@
 
 ---
 
-## 💎 Premium/Advanced Features
+##  Premium/Advanced Features
 
 ### 13. **AI-Powered Features**
 - **Smart Evidence Linking**: Auto-suggest skill connections
@@ -136,7 +136,7 @@
 
 ---
 
-## 🏗️ Technical Improvements
+##  Technical Improvements
 
 ### 16. **Performance**
 - **Virtual Scrolling**: For large lists (1000+ items)
@@ -164,7 +164,7 @@
 
 ---
 
-## 🎨 Design Polish
+##  Design Polish
 
 ### 19. **Visual Refinements**
 - **Glassmorphism**: Frosted glass effects on overlays
@@ -184,7 +184,7 @@
 
 ---
 
-## 🚀 Quick Wins (Implement First)
+##  Quick Wins (Implement First)
 
 1. **Command Palette** - Massive productivity boost
 2. **Keyboard Shortcuts** - Power user essential
@@ -199,7 +199,7 @@
 
 ---
 
-## 📊 Data Model Enhancements
+##  Data Model Enhancements
 
 ### 21. **Rich Data Types**
 ```typescript
@@ -251,7 +251,7 @@ interface Evidence {
 
 ---
 
-## 🎯 User Journeys to Optimize
+##  User Journeys to Optimize
 
 1. **New User Onboarding**: Interactive tutorial, sample data, quick wins
 2. **Daily Check-in**: Quick activity logging, streak maintenance
@@ -263,7 +263,7 @@ interface Evidence {
 
 ---
 
-## 💡 Innovative Ideas
+##  Innovative Ideas
 
 - **Voice Input**: Add evidence/notes via voice
 - **Browser Extension**: Capture evidence from web browsing
@@ -278,7 +278,7 @@ interface Evidence {
 
 ---
 
-## 📈 Metrics to Track
+##  Metrics to Track
 
 - Time on platform
 - Features used
