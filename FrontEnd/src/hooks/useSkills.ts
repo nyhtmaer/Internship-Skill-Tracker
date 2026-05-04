@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '../services/apiClient';
 
 interface Skill {
@@ -15,7 +15,8 @@ export function useSkills() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSkills = async () => {
+  // memoized fetch
+  const fetchSkills = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -29,12 +30,13 @@ export function useSkills() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchSkills();
-  }, []);
+  }, [fetchSkills]);
 
+  // skill operations
   const addSkill = async (skillName: string, skillLevel: number, description?: string) => {
     setError(null);
     try {
