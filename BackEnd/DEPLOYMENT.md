@@ -18,15 +18,15 @@ Complete guide for setting up, deploying, and maintaining the Internship Skill T
 ## System Requirements
 
 ### Minimum Requirements
-- **Node.js**: 18.0.0 or higher (ES Modules support)
+- **Node.js**: 18.0.0 or higher (ES Modules support required)
 - **npm**: 9.0.0 or higher
 - **MongoDB**: 4.4 or higher
-- **RAM**: 512MB minimum, 2GB+ recommended
-- **Disk**: 1GB minimum for dependencies + database
+- **RAM**: 512MB minimum (2GB+ recommended)
+- **Disk**: 1GB minimum (dependencies + database)
 
-### Supported Operating Systems
-- Windows 10+
-- macOS 10.15+
+### Supported OS Platforms
+- Windows 10 or newer
+- macOS 10.15 or newer
 - Linux (Ubuntu 18.04+, CentOS 7+, Debian 10+)
 
 ### Check Your Versions
@@ -269,22 +269,22 @@ CMD ["npm", "start"]
 
 ### Production Deployment Checklist
 
-- [ ] Node.js 18+ installed on server
-- [ ] MongoDB Atlas cluster created with IP whitelist
-- [ ] `.env` file configured with production values
-- [ ] `JWT_SECRET` generated with strong random string
-- [ ] `NODE_ENV` set to `production`
-- [ ] `MONGODB_URI` points to managed MongoDB service
-- [ ] SSL/TLS certificate configured (use reverse proxy like Nginx)
-- [ ] Process manager running (PM2, systemd, or container orchestration)
-- [ ] Log aggregation service configured (Sentry, LogRocket, etc.)
-- [ ] Database backups automated
-- [ ] Rate limiting configured on API
-- [ ] CORS properly configured for frontend domain
+- [ ] Node.js 18 or higher installed on server
+- [ ] MongoDB Atlas cluster created with IP whitelist configured
+- [ ] `.env` file configured with production environment values
+- [ ] `JWT_SECRET` generated using strong random string
+- [ ] `NODE_ENV` environment variable set to `production`
+- [ ] `MONGODB_URI` pointing to managed MongoDB service
+- [ ] SSL/TLS certificate configured (via reverse proxy such as Nginx)
+- [ ] Process manager running (PM2, systemd, or container orchestration tool)
+- [ ] Log aggregation service configured (e.g., Sentry, LogRocket)
+- [ ] Automated database backups scheduled
+- [ ] Rate limiting implemented on API endpoints
+- [ ] CORS properly configured for frontend domain(s)
 - [ ] Health checks configured on load balancer
-- [ ] Monitoring and alerting setup
-- [ ] Load testing completed
-- [ ] Smoke tests run on production
+- [ ] Monitoring and alerting system set up
+- [ ] Load testing completed successfully
+- [ ] Smoke tests executed on production environment
 
 ---
 
@@ -347,19 +347,19 @@ MongoDB collections are automatically created on first write. Collections create
 - ✅ File size limited to 5MB
 - ✅ Filenames randomized with UUID (prevents guessing)
 
-### Deployment Security
+### Deployment Security Checklist
 
-- [ ] `.env` file in `.gitignore` (never commit secrets)
-- [ ] `.env.example` committed to git as template
-- [ ] `JWT_SECRET` is random and strong (minimum 32 characters)
-- [ ] `MONGODB_URI` uses SSL/TLS encryption
-- [ ] CORS whitelist configured for frontend domain only
-- [ ] Rate limiting implemented on public endpoints
-- [ ] HTTPS/TLS enabled in production
-- [ ] Database backups automated daily
-- [ ] Database user has minimal required permissions
-- [ ] Server logs don't expose sensitive data
-- [ ] Dependencies kept up-to-date (`npm audit`)
+- [ ] `.env` file added to `.gitignore` (secrets never committed)
+- [ ] `.env.example` committed to repository as template reference
+- [ ] `JWT_SECRET` using random, strong value (minimum 32 characters)
+- [ ] `MONGODB_URI` configured with SSL/TLS encryption enabled
+- [ ] CORS whitelist restricted to frontend domain(s) only
+- [ ] Rate limiting applied on all public API endpoints
+- [ ] HTTPS/TLS enabled for production environment
+- [ ] Automated daily database backups scheduled
+- [ ] Database user assigned minimal required permissions only
+- [ ] Server logs sanitized (no sensitive data exposure)
+- [ ] Dependencies regularly updated (`npm audit` or similar)
 
 ### Infrastructure Security
 
