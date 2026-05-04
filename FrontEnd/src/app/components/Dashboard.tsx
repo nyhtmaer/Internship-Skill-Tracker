@@ -34,62 +34,177 @@ import CustomTooltip from './CustomTooltip';
 import AnimatedNumber from './AnimatedNumber';
 import ProgressRing from './ProgressRing';
 
-const skillHealthData = [
-  { month: 'Aug', score: 65 },
-  { month: 'Sep', score: 72 },
-  { month: 'Oct', score: 78 },
-  { month: 'Nov', score: 75 },
-  { month: 'Dec', score: 82 },
-  { month: 'Jan', score: 88 },
-  { month: 'Feb', score: 92 },
-];
+import { api } from '../api';
 
-const skillRadarData = [
-  { skill: 'Frontend', current: 85, target: 90 },
-  { skill: 'Backend', current: 65, target: 80 },
-  { skill: 'Design', current: 75, target: 85 },
-  { skill: 'Data', current: 60, target: 75 },
-  { skill: 'Mobile', current: 55, target: 70 },
-  { skill: 'DevOps', current: 50, target: 65 },
-];
 
-const upcomingDeadlines = [
-  { title: 'React Advanced Certification', date: 'Feb 15, 2026', type: 'Certification', priority: 'high' },
-  { title: 'Internship Review - Meta', date: 'Feb 18, 2026', type: 'Review', priority: 'high' },
-  { title: 'TypeScript Workshop', date: 'Feb 22, 2026', type: 'Learning', priority: 'medium' },
-  { title: 'Portfolio Update', date: 'Feb 28, 2026', type: 'Task', priority: 'low' },
-];
+export default function Dashboard({ onNavigate }: { onNavigate?: (page: string) => void }) {
+  const [stats, setStats] = React.useState({ internships: 0, skills: 0, certifications: 0, evidence: 0 });
+  const [recentItems, setRecentItems] = React.useState<any[]>([]);
+  const [skillSnapshot, setSkillSnapshot] = React.useState<any[]>([]);
+  const [radarData, setRadarData] = React.useState<any[]>([]);
+  const [healthScore, setHealthScore] = React.useState(0);
+  const [healthHistory, setHealthHistory] = React.useState<any[]>([]);
+  const [alerts, setAlerts] = React.useState<any[]>([]);
+  const [deadlines, setDeadlines] = React.useState<any[]>([]);
+  const [decayingSkill, setDecayingSkill] = React.useState<any>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
 
-const recentActivity = [
-  { action: 'Completed AWS Cloud Practitioner', time: '2 hours ago', type: 'certification' },
-  { action: 'Added 3 new pieces of evidence', time: '5 hours ago', type: 'evidence' },
-  { action: 'Updated React skill level', time: '1 day ago', type: 'skill' },
-  { action: 'Started internship at Stripe', time: '3 days ago', type: 'internship' },
-];
+  React.useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [recordsRes, skillsRes] = await Promise.allSettled([
+          api.getRecords(),
+          api.getSkills()
+        ]);
 
-export default function Dashboard() {
+        const records = recordsRes.status === 'fulfilled' ? (recordsRes.value.data || []) : [];
+        const skills = skillsRes.status === 'fulfilled' ? (skillsRes.value.data || []) : [];
+
+        // ---- Stats ----
+        setStats({
+          internships: records.filter((r: any) => r.type === 'internship').length,
+          certifications: records.filter((r: any) => r.type === 'certification').length,
+          skills: skills.length,
+          evidence: 0,
+        });
+
+        // ---- Recent Activity ----
+        const combined = [
+          ...records.map((r: any) => ({
+            action: `${r.type === 'internship' ? 'Added internship' : 'Added certification'}: ${r.title}`,
+            time: new Date(r.createdAt || Date.now()).toLocaleDateString(),
+            type: r.type === 'internship' ? 'internship' : 'certification',
+            date: new Date(r.createdAt || Date.now()),
+          })),
+          ...skills.map((s: any) => ({
+            action: `Started tracking skill: ${s.skill_name}`,
+            time: new Date(s.createdAt || Date.now()).toLocaleDateString(),
+            type: 'skill',
+            date: new Date(s.createdAt || Date.now()),
+          })),
+        ].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 4);
+        setRecentItems(combined);
+
+        // ---- Skill Snapshot ----
+        const mappedSkills = skills.slice(0, 6).map((s: any) => ({
+          name: s.skill_name,
+          level: s.skill_level || 50,
+          lastDays: 1,
+          status: (s.trend === 'decaying' ? 'decaying' : s.trend === 'stable' ? 'at-risk' : 'active') as 'active' | 'at-risk' | 'decaying',
+        }));
+        setSkillSnapshot(mappedSkills);
+
+        // ---- Health Score = average of all skill levels ----
+        if (skills.length > 0) {
+          const avg = Math.round(skills.reduce((acc: number, s: any) => acc + (s.skill_level || 50), 0) / skills.length);
+          setHealthScore(avg);
+          // Simulate health history from the score trending upward
+          const months = ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'];
+          setHealthHistory(months.map((month, i) => ({ month, score: Math.max(30, avg - (months.length - 1 - i) * 5) })));
+        } else {
+          setHealthScore(0);
+          setHealthHistory([]);
+        }
+
+        // ---- Radar: group skills by category ----
+        const categoryMap: Record<string, number[]> = {};
+        skills.forEach((s: any) => {
+          const cat = s.category || 'Other';
+          if (!categoryMap[cat]) categoryMap[cat] = [];
+          categoryMap[cat].push(s.skill_level || 50);
+        });
+        const radar = Object.entries(categoryMap).map(([skill, levels]) => ({
+          skill,
+          current: Math.round(levels.reduce((a, b) => a + b, 0) / levels.length),
+          target: Math.min(100, Math.round(levels.reduce((a, b) => a + b, 0) / levels.length) + 15),
+        }));
+        setRadarData(radar.length > 0 ? radar : []);
+
+        // ---- Alerts ----
+        const alertList: any[] = [];
+        const decaying = skills.filter((s: any) => s.trend === 'decaying');
+        if (decaying.length > 0) {
+          alertList.push({ title: `${decaying[0].skill_name} skill decaying`, description: 'No recent practice logged', severity: 'warning', cta: 'Log Practice', target: 'skills' });
+        }
+        const expiring = records.filter((r: any) => r.type === 'certification' && r.status === 'expiring');
+        if (expiring.length > 0) {
+          alertList.push({ title: `${expiring[0].title} expiring soon`, description: `Expires: ${expiring[0].expiryDate || 'check cert'}`, severity: 'error', cta: 'Check Cert', target: 'certifications' });
+        }
+        const skillsNoEvidence = skills.filter((s: any) => !s.evidence_count || s.evidence_count === 0);
+        if (skillsNoEvidence.length > 0) {
+          alertList.push({ title: 'Missing evidence', description: `Link work samples to ${skillsNoEvidence[0].skill_name}`, severity: 'info', cta: 'Link Now →', target: 'evidence' });
+        }
+        setAlerts(alertList);
+
+        // ---- Upcoming Deadlines from certifications ----
+        const deadlineList = records
+          .filter((r: any) => r.type === 'certification' && (r.expiryDate || r.status === 'expiring'))
+          .map((r: any) => ({
+            title: r.title || r.name,
+            date: r.expiryDate || 'TBD',
+            type: 'Certification',
+            priority: r.status === 'expiring' ? 'high' : 'medium',
+          })).slice(0, 4);
+        setDeadlines(deadlineList);
+
+        // ---- Decay banner ----
+        const worstDecay = skills.find((s: any) => s.trend === 'decaying') || skills[skills.length - 1];
+        setDecayingSkill(worstDecay || null);
+
+      } catch (err) {
+        console.error('Failed to load dashboard data', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  const overallBalance = radarData.length > 0
+    ? Math.round(radarData.reduce((a, d) => a + d.current, 0) / radarData.length)
+    : 0;
+
   return (
     <div className="p-8 space-y-8">
 
       {/* Today's Focus — Skill Decay CTA */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-2xl p-6">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.15),transparent_60%)]" />
-        <div className="relative flex items-start justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0 backdrop-blur-sm">
+      {decayingSkill ? (
+        <div className="relative overflow-hidden bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-2xl p-6">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.15),transparent_60%)]" />
+          <div className="relative flex items-start justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0 backdrop-blur-sm">
+                <Zap className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-white/70 text-xs font-medium uppercase tracking-widest mb-1">Today's Focus</p>
+                <h3 className="text-lg font-bold mb-1">{decayingSkill.skill_name} skill needs attention</h3>
+                <p className="text-white/80 text-sm">Log a practice session to maintain your proficiency level at {decayingSkill.skill_level || 50}%.</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => onNavigate && onNavigate('skills')}
+              className="flex-shrink-0 bg-white text-indigo-700 font-semibold text-sm px-4 py-2.5 rounded-xl hover:bg-white/90 transition-colors whitespace-nowrap"
+            >
+              Log Practice →
+            </button>
+          </div>
+        </div>
+      ) : stats.skills === 0 ? (
+        <div className="relative overflow-hidden bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-2xl p-6">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.15),transparent_60%)]" />
+          <div className="relative flex items-start gap-4">
+            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
               <Zap className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-white/70 text-xs font-medium uppercase tracking-widest mb-1">Today's Focus</p>
-              <h3 className="text-lg font-bold mb-1">Python skill is decaying — 18 days without practice</h3>
-              <p className="text-white/80 text-sm">Your proficiency tends to drop ~4% per week without practice. Spend 30 min today to hold your level.</p>
+              <p className="text-white/70 text-xs font-medium uppercase tracking-widest mb-1">Get Started</p>
+              <h3 className="text-lg font-bold mb-1">Welcome to SkillTrack 🎉</h3>
+              <p className="text-white/80 text-sm">Add your first skill or internship to start tracking your career growth.</p>
             </div>
           </div>
-          <button className="flex-shrink-0 bg-white text-indigo-700 font-semibold text-sm px-4 py-2.5 rounded-xl hover:bg-white/90 transition-colors whitespace-nowrap">
-            Log Practice →
-          </button>
         </div>
-      </div>
+      ) : null}
 
       {/* Top Stats & Recent Activity Group */}
       <div className="grid grid-cols-2 gap-6">
@@ -98,29 +213,29 @@ export default function Dashboard() {
         <div className="grid grid-cols-2 gap-4">
           <StatCard
             title="Active Internships"
-            value="2"
-            change="+1 this month"
+            value={stats.internships}
+            change="Current total"
             trend="up"
             icon={Briefcase}
           />
           <StatCard
             title="Skills Tracked"
-            value="24"
-            change="+3 this week"
+            value={stats.skills}
+            change="Current total"
             trend="up"
             icon={Target}
           />
           <StatCard
             title="Certifications"
-            value="8"
-            change="+2 this month"
+            value={stats.certifications}
+            change="Current total"
             trend="up"
             icon={Award}
           />
           <StatCard
             title="Evidence Items"
-            value="47"
-            change="+5 this week"
+            value={stats.evidence}
+            change="Current total"
             trend="up"
             icon={ArrowUpRight}
           />
@@ -133,7 +248,7 @@ export default function Dashboard() {
             <h3 className="text-lg font-semibold">Recent Activity</h3>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            {recentActivity.map((item, idx) => (
+            {recentItems.map((item, idx) => (
               <ActivityItem key={idx} {...item} />
             ))}
           </div>
@@ -150,9 +265,11 @@ export default function Dashboard() {
             <h3 className="text-lg font-semibold">Alerts</h3>
           </div>
           <div className="space-y-3">
-            <AlertItem title="React skill decaying" description="No practice in 14 days" severity="warning" cta="Add Evidence" />
-            <AlertItem title="Certificate expiring soon" description="AWS cert expires Mar 15" severity="error" cta="Set Reminder" />
-            <AlertItem title="Missing evidence" description="Link work samples to Node.js" severity="info" cta="Link Now →" />
+            {alerts.length > 0 ? alerts.map((alert, idx) => (
+              <AlertItem key={idx} {...alert} onAction={(target: string) => onNavigate && onNavigate(target)} />
+            )) : (
+              <p className="text-sm text-muted-foreground">No active alerts — you're on track! 🎉</p>
+            )}
           </div>
         </div>
         {/* Upcoming Deadlines */}
@@ -162,9 +279,11 @@ export default function Dashboard() {
             <h3 className="text-lg font-semibold">Upcoming Deadlines</h3>
           </div>
           <div className="space-y-3">
-            {upcomingDeadlines.map((item, idx) => (
+            {deadlines.length > 0 ? deadlines.map((item, idx) => (
               <DeadlineItem key={idx} {...item} />
-            ))}
+            )) : (
+              <p className="text-sm text-muted-foreground">No upcoming deadlines. Add certifications with expiry dates to track them here.</p>
+            )}
           </div>
         </div>
       </div>
@@ -189,17 +308,17 @@ export default function Dashboard() {
             </div>
             <div className="text-right">
               <div className="text-3xl font-bold">
-                <AnimatedNumber value={92} duration={1500} />
+                <AnimatedNumber value={healthScore} duration={1500} />
               </div>
               <div className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1 justify-end">
                 <TrendingUp className="w-4 h-4" />
-                +10 pts
+                avg skill level
               </div>
             </div>
           </div>
           
           <ResponsiveContainer width="100%" height={240}>
-            <AreaChart data={skillHealthData}>
+            <AreaChart data={healthHistory.length > 0 ? healthHistory : [{ month: 'Now', score: healthScore }]}>
               <defs>
                 <linearGradient id="healthGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" style={{ stopColor: 'var(--chart-1)', stopOpacity: 0.3 }} />
@@ -243,19 +362,20 @@ export default function Dashboard() {
                 Current vs Target
               </p>
             </div>
-            <ProgressRing progress={76} size={60} strokeWidth={6}>
-              <div className="text-xs font-bold">76%</div>
+            <ProgressRing progress={overallBalance} size={60} strokeWidth={6}>
+              <div className="text-xs font-bold">{overallBalance}%</div>
             </ProgressRing>
           </div>
 
           <ResponsiveContainer width="100%" height={240}>
-            <RadarChart data={skillRadarData}>
-              <PolarGrid stroke="var(--border)" strokeWidth={0.5} />
+            <RadarChart data={radarData.length > 0 ? radarData : [{ skill: 'No data', current: 0, target: 0 }]}>
+              <PolarGrid stroke="rgba(128, 128, 128, 0.2)" strokeWidth={1} />
               <PolarAngleAxis
                 dataKey="skill"
-                stroke="var(--foreground)"
+                stroke="currentColor"
                 fontSize={11}
                 tickSize={8}
+                className="text-foreground"
               />
               {/* Radius axis labels hidden — values visible on hover tooltip */}
               <PolarRadiusAxis
@@ -327,14 +447,7 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="space-y-3">
-          {[
-            { name: 'JavaScript', level: 88, lastDays: 2,  status: 'active'  as const },
-            { name: 'React',      level: 85, lastDays: 3,  status: 'active'  as const },
-            { name: 'TypeScript', level: 80, lastDays: 1,  status: 'active'  as const },
-            { name: 'Node.js',    level: 75, lastDays: 11, status: 'at-risk' as const },
-            { name: 'Python',     level: 62, lastDays: 18, status: 'decaying' as const },
-            { name: 'Docker',     level: 58, lastDays: 24, status: 'decaying' as const },
-          ].map((skill) => (
+          {skillSnapshot.map((skill) => (
             <SkillSnapshotRow key={skill.name} {...skill} />
           ))}
         </div>
@@ -364,7 +477,7 @@ function StatCard({ title, value, change, trend, icon: Icon }: any) {
   );
 }
 
-function AlertItem({ title, description, severity, cta }: any) {
+function AlertItem({ title, description, severity, cta, target, onAction }: any) {
   const colors = {
     warning: 'border-orange-500/40 bg-orange-500/15 dark:bg-orange-500/20',
     error:   'border-red-500/40 bg-red-500/15 dark:bg-red-500/20',
@@ -392,7 +505,10 @@ function AlertItem({ title, description, severity, cta }: any) {
           <div className="text-xs text-muted-foreground pl-6">{description}</div>
         </div>
         {cta && (
-          <button className={`flex-shrink-0 text-xs font-semibold px-2 py-1 rounded-md transition-colors ${ctaColors[severity as keyof typeof ctaColors]}`}>
+          <button 
+            onClick={() => onAction && target && onAction(target)}
+            className={`flex-shrink-0 text-xs font-semibold px-2 py-1 rounded-md transition-colors ${ctaColors[severity as keyof typeof ctaColors]}`}
+          >
             {cta}
           </button>
         )}

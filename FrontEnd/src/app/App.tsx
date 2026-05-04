@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from './context/AuthContext';
 import { Moon, Sun } from 'lucide-react';
 import { Toaster } from 'sonner';
 
@@ -31,6 +32,7 @@ const PAGE_TITLES: Record<Page, string> = {
 };
 
 export default function App() {
+  const { user } = useAuth();
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [isDark, setIsDark] = useState<boolean>(() => {
     return localStorage.getItem('theme') === 'dark';
@@ -127,7 +129,7 @@ export default function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard onNavigate={setCurrentPage} />;
       case 'internships':
         return <Internships />;
       case 'skills':
@@ -158,7 +160,7 @@ export default function App() {
                   {currentPage === 'dashboard' ? (
                     <>
                       <h1 className="text-2xl font-semibold tracking-tight">
-                        {getGreeting()}, Maya 👋
+                        {getGreeting()}, {user?.name?.split(' ')[0] || 'User'} 👋
                       </h1>
                       <p className="text-sm text-muted-foreground mt-0.5">
                         Here's your career snapshot for today

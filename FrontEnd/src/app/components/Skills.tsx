@@ -33,6 +33,7 @@ import {
   PolarRadiusAxis,
   Radar
 } from 'recharts';
+import { api } from '../api';
 
 const skillsTimelineData = [
   { month: 'Aug', totalSkills: 12, newSkills: 12 },
@@ -44,293 +45,7 @@ const skillsTimelineData = [
   { month: 'Feb', totalSkills: 25, newSkills: 2 },
 ];
 
-const skillsData = [
-  {
-    id: 1,
-    name: 'React',
-    category: 'Frontend',
-    level: 85,
-    trend: 'growing',
-    lastPracticed: '2 days ago',
-    evidenceCount: 12,
-    certifications: 2,
-    internships: 2,
-    growthData: [
-      { date: 'Aug', level: 50 },
-      { date: 'Sep', level: 58 },
-      { date: 'Oct', level: 65 },
-      { date: 'Nov', level: 72 },
-      { date: 'Dec', level: 78 },
-      { date: 'Jan', level: 82 },
-      { date: 'Feb', level: 85 },
-    ],
-    relatedEvidence: [
-      { type: 'project', title: 'E-commerce Dashboard', impact: 'high' },
-      { type: 'certification', title: 'React Advanced Patterns', impact: 'medium' },
-      { type: 'internship', title: 'Meta - Frontend Intern', impact: 'high' },
-    ],
-  },
-  {
-    id: 2,
-    name: 'TypeScript',
-    category: 'Languages',
-    level: 80,
-    trend: 'growing',
-    lastPracticed: '1 day ago',
-    evidenceCount: 9,
-    certifications: 1,
-    internships: 2,
-    growthData: [
-      { date: 'Aug', level: 40 },
-      { date: 'Sep', level: 48 },
-      { date: 'Oct', level: 55 },
-      { date: 'Nov', level: 63 },
-      { date: 'Dec', level: 70 },
-      { date: 'Jan', level: 75 },
-      { date: 'Feb', level: 80 },
-    ],
-    relatedEvidence: [
-      { type: 'project', title: 'Type-safe API Client', impact: 'high' },
-      { type: 'internship', title: 'Meta - Frontend Intern', impact: 'high' },
-    ],
-  },
-  {
-    id: 3,
-    name: 'Node.js',
-    category: 'Backend',
-    level: 75,
-    trend: 'stable',
-    lastPracticed: '5 days ago',
-    evidenceCount: 8,
-    certifications: 1,
-    internships: 1,
-    growthData: [
-      { date: 'Aug', level: 45 },
-      { date: 'Sep', level: 52 },
-      { date: 'Oct', level: 60 },
-      { date: 'Nov', level: 68 },
-      { date: 'Dec', level: 72 },
-      { date: 'Jan', level: 74 },
-      { date: 'Feb', level: 75 },
-    ],
-    relatedEvidence: [
-      { type: 'project', title: 'REST API Service', impact: 'high' },
-      { type: 'internship', title: 'Stripe - Full Stack Intern', impact: 'high' },
-    ],
-  },
-  {
-    id: 4,
-    name: 'Python',
-    category: 'Languages',
-    level: 62,
-    trend: 'decaying',
-    lastPracticed: '21 days ago',
-    evidenceCount: 5,
-    certifications: 0,
-    internships: 0,
-    growthData: [
-      { date: 'Aug', level: 70 },
-      { date: 'Sep', level: 70 },
-      { date: 'Oct', level: 68 },
-      { date: 'Nov', level: 67 },
-      { date: 'Dec', level: 65 },
-      { date: 'Jan', level: 63 },
-      { date: 'Feb', level: 62 },
-    ],
-    relatedEvidence: [
-      { type: 'project', title: 'Data Analysis Script', impact: 'medium' },
-      { type: 'certification', title: 'Python Fundamentals', impact: 'low' },
-    ],
-  },
-  {
-    id: 5,
-    name: 'PostgreSQL',
-    category: 'Database',
-    level: 68,
-    trend: 'growing',
-    lastPracticed: '7 days ago',
-    evidenceCount: 6,
-    certifications: 0,
-    internships: 1,
-    growthData: [
-      { date: 'Aug', level: 35 },
-      { date: 'Sep', level: 42 },
-      { date: 'Oct', level: 50 },
-      { date: 'Nov', level: 57 },
-      { date: 'Dec', level: 62 },
-      { date: 'Jan', level: 65 },
-      { date: 'Feb', level: 68 },
-    ],
-    relatedEvidence: [
-      { type: 'internship', title: 'Stripe - Full Stack Intern', impact: 'high' },
-      { type: 'project', title: 'Database Migration Tool', impact: 'medium' },
-    ],
-  },
-  {
-    id: 6,
-    name: 'Docker',
-    category: 'DevOps',
-    level: 60,
-    trend: 'growing',
-    lastPracticed: '10 days ago',
-    evidenceCount: 4,
-    certifications: 1,
-    internships: 1,
-    growthData: [
-      { date: 'Aug', level: 25 },
-      { date: 'Sep', level: 32 },
-      { date: 'Oct', level: 40 },
-      { date: 'Nov', level: 48 },
-      { date: 'Dec', level: 53 },
-      { date: 'Jan', level: 57 },
-      { date: 'Feb', level: 60 },
-    ],
-    relatedEvidence: [
-      { type: 'internship', title: 'Stripe - Full Stack Intern', impact: 'high' },
-      { type: 'certification', title: 'Docker Essentials', impact: 'medium' },
-    ],
-  },
-  {
-    id: 7,
-    name: 'JavaScript',
-    category: 'Languages',
-    level: 88,
-    trend: 'stable',
-    lastPracticed: '1 day ago',
-    evidenceCount: 15,
-    certifications: 1,
-    internships: 2,
-    growthData: [
-      { date: 'Aug', level: 75 },
-      { date: 'Sep', level: 78 },
-      { date: 'Oct', level: 82 },
-      { date: 'Nov', level: 85 },
-      { date: 'Dec', level: 86 },
-      { date: 'Jan', level: 87 },
-      { date: 'Feb', level: 88 },
-    ],
-    relatedEvidence: [
-      { type: 'internship', title: 'Meta - Frontend Intern', impact: 'high' },
-      { type: 'project', title: 'Interactive Web Apps', impact: 'high' },
-    ],
-  },
-  {
-    id: 8,
-    name: 'Vue.js',
-    category: 'Frontend',
-    level: 55,
-    trend: 'growing',
-    lastPracticed: '15 days ago',
-    evidenceCount: 3,
-    certifications: 0,
-    internships: 0,
-    growthData: [
-      { date: 'Aug', level: 30 },
-      { date: 'Sep', level: 35 },
-      { date: 'Oct', level: 40 },
-      { date: 'Nov', level: 45 },
-      { date: 'Dec', level: 48 },
-      { date: 'Jan', level: 52 },
-      { date: 'Feb', level: 55 },
-    ],
-    relatedEvidence: [
-      { type: 'project', title: 'Personal Portfolio', impact: 'medium' },
-    ],
-  },
-  {
-    id: 9,
-    name: 'AWS',
-    category: 'Cloud',
-    level: 58,
-    trend: 'growing',
-    lastPracticed: '8 days ago',
-    evidenceCount: 7,
-    certifications: 1,
-    internships: 1,
-    growthData: [
-      { date: 'Aug', level: 20 },
-      { date: 'Sep', level: 28 },
-      { date: 'Oct', level: 38 },
-      { date: 'Nov', level: 45 },
-      { date: 'Dec', level: 50 },
-      { date: 'Jan', level: 54 },
-      { date: 'Feb', level: 58 },
-    ],
-    relatedEvidence: [
-      { type: 'certification', title: 'AWS Cloud Practitioner', impact: 'high' },
-      { type: 'project', title: 'Serverless API', impact: 'high' },
-    ],
-  },
-  {
-    id: 10,
-    name: 'MongoDB',
-    category: 'Database',
-    level: 65,
-    trend: 'stable',
-    lastPracticed: '12 days ago',
-    evidenceCount: 5,
-    certifications: 0,
-    internships: 0,
-    growthData: [
-      { date: 'Aug', level: 58 },
-      { date: 'Sep', level: 60 },
-      { date: 'Oct', level: 62 },
-      { date: 'Nov', level: 63 },
-      { date: 'Dec', level: 64 },
-      { date: 'Jan', level: 65 },
-      { date: 'Feb', level: 65 },
-    ],
-    relatedEvidence: [
-      { type: 'project', title: 'User Auth System', impact: 'medium' },
-    ],
-  },
-  {
-    id: 11,
-    name: 'Git',
-    category: 'Tools',
-    level: 90,
-    trend: 'stable',
-    lastPracticed: '1 day ago',
-    evidenceCount: 20,
-    certifications: 0,
-    internships: 2,
-    growthData: [
-      { date: 'Aug', level: 82 },
-      { date: 'Sep', level: 84 },
-      { date: 'Oct', level: 86 },
-      { date: 'Nov', level: 87 },
-      { date: 'Dec', level: 88 },
-      { date: 'Jan', level: 89 },
-      { date: 'Feb', level: 90 },
-    ],
-    relatedEvidence: [
-      { type: 'internship', title: 'All Projects', impact: 'high' },
-    ],
-  },
-  {
-    id: 12,
-    name: 'Kubernetes',
-    category: 'DevOps',
-    level: 42,
-    trend: 'growing',
-    lastPracticed: '18 days ago',
-    evidenceCount: 2,
-    certifications: 0,
-    internships: 0,
-    growthData: [
-      { date: 'Aug', level: 15 },
-      { date: 'Sep', level: 20 },
-      { date: 'Oct', level: 25 },
-      { date: 'Nov', level: 30 },
-      { date: 'Dec', level: 35 },
-      { date: 'Jan', level: 38 },
-      { date: 'Feb', level: 42 },
-    ],
-    relatedEvidence: [
-      { type: 'project', title: 'Container Orchestration', impact: 'medium' },
-    ],
-  },
-];
+// Skills data comes from backend now.
 
 const categories = [
   { name: 'Languages', icon: Code, color: 'from-blue-500/20 to-blue-600/20', borderColor: 'border-blue-500/30' },
@@ -343,8 +58,58 @@ const categories = [
 ];
 
 export default function Skills() {
+  const [skillsData, setSkillsData] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedSkill, setSelectedSkill] = useState<typeof skillsData[0] | null>(null);
+  const [selectedSkill, setSelectedSkill] = useState<any | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newSkill, setNewSkill] = useState({
+    skill_name: '',
+    category: 'Frontend',
+    skill_level: 50,
+  });
+
+  const fetchSkills = async () => {
+    try {
+      const response = await api.getSkills();
+      setSkillsData(
+        response.data.map((s: any) => ({
+          ...s,
+          id: s._id,
+          name: s.skill_name.charAt(0).toUpperCase() + s.skill_name.slice(1),
+          level: s.skill_level,
+          trend: s.trend || 'stable',
+          lastPracticed: '0 days ago',
+          evidenceCount: 0,
+          certifications: 0,
+          internships: 0,
+          relatedEvidence: []
+        }))
+      );
+    } catch (error) {
+      console.error('Failed to fetch skills:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchSkills();
+  }, []);
+
+  const handleAddSkill = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSkill.skill_name) return;
+    
+    try {
+      await api.createSkill(newSkill);
+      setIsModalOpen(false);
+      setNewSkill({ skill_name: '', category: 'Frontend', skill_level: 50 });
+      fetchSkills();
+    } catch (error: any) {
+      console.error('Failed to add skill:', error);
+    }
+  };
 
   const getCategoryStats = (categoryName: string) => {
     const categorySkills = skillsData.filter(s => s.category === categoryName);
@@ -358,6 +123,14 @@ export default function Skills() {
   };
 
   // Category Overview View
+  if (isLoading) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-[500px]">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   if (!selectedCategory) {
     return (
       <div className="p-8 space-y-8">
@@ -369,7 +142,10 @@ export default function Skills() {
             </p>
           </div>
 
-          <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity">
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
+          >
             + Add Skill
           </button>
         </div>
@@ -447,6 +223,70 @@ export default function Skills() {
             );
           })}
         </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+          <div className="bg-card w-full max-w-md border border-border rounded-xl shadow-lg">
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h2 className="font-semibold text-lg">Add Skill</h2>
+              <button onClick={() => setIsModalOpen(false)} className="p-1 hover:bg-accent rounded-md transition-colors">
+                <span className="text-muted-foreground text-xl leading-none">&times;</span>
+              </button>
+            </div>
+            <form onSubmit={handleAddSkill} className="p-4 space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Skill Name</label>
+                <input
+                  type="text"
+                  required
+                  value={newSkill.skill_name}
+                  onChange={(e) => setNewSkill({ ...newSkill, skill_name: e.target.value })}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  placeholder="React"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Category</label>
+                <select
+                  value={newSkill.category}
+                  onChange={(e) => setNewSkill({ ...newSkill, category: e.target.value })}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
+                  {categories.map(c => (
+                    <option key={c.name} value={c.name}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Skill Level: {newSkill.skill_level}%</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={newSkill.skill_level}
+                  onChange={(e) => setNewSkill({ ...newSkill, skill_level: parseInt(e.target.value) })}
+                  className="w-full accent-primary"
+                />
+              </div>
+              <div className="pt-4 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 border border-border rounded-md text-sm font-medium hover:bg-accent transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
+                >
+                  Save Skill
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       </div>
     );

@@ -6,145 +6,23 @@ import {
   Link as LinkIcon,
   Code,
   Award,
-  Briefcase,
   Calendar,
   Tag,
   Search,
-  Filter,
   Download,
   ExternalLink,
-  Star
+  Star,
+  Plus,
+  X,
+  Github,
+  Loader2,
+  CheckCircle2,
+  Zap
 } from 'lucide-react';
+import { api } from '../api';
+import { toast } from 'sonner';
 
-const evidenceItems = [
-  {
-    id: 1,
-    title: 'E-commerce Dashboard React App',
-    type: 'project',
-    format: 'code',
-    date: 'Feb 5, 2026',
-    tags: ['React', 'TypeScript', 'Tailwind'],
-    linkedTo: ['React', 'TypeScript', 'UI/UX'],
-    description: 'Full-featured admin dashboard with real-time analytics',
-    url: 'https://github.com/user/ecommerce-dashboard',
-    featured: true,
-    impact: 'high',
-  },
-  {
-    id: 2,
-    title: 'Meta Internship Offer Letter',
-    type: 'document',
-    format: 'pdf',
-    date: 'Jan 10, 2026',
-    tags: ['Internship', 'Meta'],
-    linkedTo: ['React', 'Frontend'],
-    description: 'Official offer letter for Frontend Engineering Intern position',
-    featured: true,
-    impact: 'high',
-  },
-  {
-    id: 3,
-    title: 'AWS Cloud Practitioner Certificate',
-    type: 'certification',
-    format: 'pdf',
-    date: 'Jan 15, 2026',
-    tags: ['AWS', 'Cloud', 'DevOps'],
-    linkedTo: ['AWS', 'Cloud Computing', 'DevOps'],
-    description: 'AWS Certified Cloud Practitioner credential',
-    url: 'https://aws.amazon.com/verify/12345',
-    featured: false,
-    impact: 'high',
-  },
-  {
-    id: 4,
-    title: 'Payment Integration Demo Video',
-    type: 'media',
-    format: 'video',
-    date: 'Dec 20, 2025',
-    tags: ['Stripe', 'Node.js', 'API'],
-    linkedTo: ['Node.js', 'API Development'],
-    description: 'Walkthrough of custom payment SDK implementation',
-    featured: false,
-    impact: 'medium',
-  },
-  {
-    id: 5,
-    title: 'Open Source Contribution - React',
-    type: 'project',
-    format: 'link',
-    date: 'Nov 28, 2025',
-    tags: ['React', 'Open Source', 'TypeScript'],
-    linkedTo: ['React', 'TypeScript', 'Open Source'],
-    description: 'PR merged to React core library for performance optimization',
-    url: 'https://github.com/facebook/react/pull/12345',
-    featured: true,
-    impact: 'high',
-  },
-  {
-    id: 6,
-    title: 'Hackathon Winner Certificate',
-    type: 'achievement',
-    format: 'pdf',
-    date: 'Oct 15, 2025',
-    tags: ['Hackathon', 'AI', 'Full Stack'],
-    linkedTo: ['React', 'Node.js', 'AI/ML'],
-    description: '1st place at TechCrunch Disrupt Hackathon',
-    featured: true,
-    impact: 'high',
-  },
-  {
-    id: 7,
-    title: 'Database Migration Tool Code',
-    type: 'project',
-    format: 'code',
-    date: 'Sep 30, 2025',
-    tags: ['PostgreSQL', 'Python', 'DevOps'],
-    linkedTo: ['PostgreSQL', 'Python'],
-    description: 'Automated database migration and backup utility',
-    url: 'https://github.com/user/db-migration-tool',
-    featured: false,
-    impact: 'medium',
-  },
-  {
-    id: 8,
-    title: 'UI Design Portfolio Screenshots',
-    type: 'media',
-    format: 'image',
-    date: 'Aug 22, 2025',
-    tags: ['Design', 'Figma', 'UI/UX'],
-    linkedTo: ['UI/UX', 'Design'],
-    description: 'Collection of UI designs for mobile and web apps',
-    featured: false,
-    impact: 'medium',
-  },
-  {
-    id: 9,
-    title: 'Conference Talk - Modern React Patterns',
-    type: 'media',
-    format: 'video',
-    date: 'Jul 10, 2025',
-    tags: ['React', 'Public Speaking'],
-    linkedTo: ['React', 'Communication'],
-    description: 'Presented at ReactConf 2025',
-    url: 'https://youtube.com/watch?v=abc123',
-    featured: true,
-    impact: 'high',
-  },
-  {
-    id: 10,
-    title: 'Recommendation Letter - Stripe Manager',
-    type: 'document',
-    format: 'pdf',
-    date: 'Dec 28, 2025',
-    tags: ['Internship', 'Stripe', 'Recommendation'],
-    linkedTo: ['Node.js', 'Full Stack'],
-    description: 'Letter of recommendation from engineering manager',
-    featured: false,
-    impact: 'high',
-  },
-];
-
-const typeIcons = {
+const typeIcons: Record<string, any> = {
   project: Code,
   document: FileText,
   certification: Award,
@@ -152,7 +30,7 @@ const typeIcons = {
   achievement: Star,
 };
 
-const formatIcons = {
+const formatIcons: Record<string, any> = {
   code: Code,
   pdf: FileText,
   video: Video,
@@ -160,21 +38,124 @@ const formatIcons = {
   link: LinkIcon,
 };
 
+const EVIDENCE_TYPES = ['project', 'document', 'certification', 'media', 'achievement'];
+const FORMATS = ['link', 'pdf', 'code', 'image', 'video'];
+
 export default function EvidenceVault() {
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [localEvidenceItems, setLocalEvidenceItems] = useState(evidenceItems);
+  const [localEvidenceItems, setLocalEvidenceItems] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [githubResult, setGithubResult] = useState<any>(null);
+  const [newEvidence, setNewEvidence] = useState({
+    title: '',
+    description: '',
+    type: 'project',
+    format: 'link',
+    url: '',
+    tags_input: '',
+    impact: 'medium',
+  });
 
-  const handleToggleStar = (id: number) => {
-    setLocalEvidenceItems(prev => prev.map(item => 
-      item.id === id ? { ...item, featured: !item.featured } : item
-    ));
+  const isGithubUrl = (url: string) => /github\.com\/[\w.-]+\/[\w.-]+/.test(url);
+
+  const handleAnalyzeGithub = async () => {
+    if (!newEvidence.url || !isGithubUrl(newEvidence.url)) return;
+    setIsAnalyzing(true);
+    setGithubResult(null);
+    try {
+      const result = await api.analyzeGithub(newEvidence.url);
+      const { repo, languages, skillsAutoAdded, readmeSummary } = result.data;
+      // Auto-fill form fields
+      setNewEvidence(prev => ({
+        ...prev,
+        title: prev.title || repo.name,
+        description: prev.description || repo.description || readmeSummary || '',
+        type: 'project',
+        tags_input: prev.tags_input || languages.slice(0, 4).map((l: any) => l.name).join(', '),
+        impact: repo.stars > 20 ? 'high' : repo.stars > 5 ? 'medium' : 'low',
+      }));
+      setGithubResult(result.data);
+      toast.success(`GitHub analyzed! Auto-added ${skillsAutoAdded.length} new skills.`);
+    } catch (err: any) {
+      toast.error(err.message || 'GitHub analysis failed');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const fetchEvidence = async () => {
+    try {
+      const response = await api.getEvidence();
+      setLocalEvidenceItems(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch evidence:', error);
+      setLocalEvidenceItems([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchEvidence();
+  }, []);
+
+  const handleToggleStar = async (id: string | number) => {
+    const item = localEvidenceItems.find((i) => i._id === id || i.id === id);
+    if (!item) return;
+    const itemId = item._id || item.id;
+
+    setLocalEvidenceItems((prev) =>
+      prev.map((i) => ((i._id || i.id) === itemId ? { ...i, featured: !i.featured } : i))
+    );
+
+    try {
+      await api.updateEvidence(itemId.toString(), { featured: !item.featured });
+    } catch (e) {
+      setLocalEvidenceItems((prev) =>
+        prev.map((i) => ((i._id || i.id) === itemId ? { ...i, featured: item.featured } : i))
+      );
+    }
+  };
+
+  const handleAddEvidence = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newEvidence.title) return;
+    try {
+      // If GitHub analysis already created the evidence, just close and refresh
+      if (githubResult?.evidenceCreated) {
+        toast.success('Evidence already saved via GitHub analysis!');
+        setIsModalOpen(false);
+        setGithubResult(null);
+        setNewEvidence({ title: '', description: '', type: 'project', format: 'link', url: '', tags_input: '', impact: 'medium' });
+        fetchEvidence();
+        return;
+      }
+      const payload = {
+        ...newEvidence,
+        tags: newEvidence.tags_input.split(',').map(t => t.trim()).filter(Boolean),
+        date: new Date().toISOString().split('T')[0],
+        featured: false,
+        linkedTo: [],
+      };
+      await api.createEvidence(payload);
+      toast.success('Evidence added!');
+      setIsModalOpen(false);
+      setGithubResult(null);
+      setNewEvidence({ title: '', description: '', type: 'project', format: 'link', url: '', tags_input: '', impact: 'medium' });
+      fetchEvidence();
+    } catch (err: any) {
+      toast.error('Failed to add evidence');
+    }
   };
 
   const filteredItems = localEvidenceItems.filter(item => {
     const matchesFilter = filter === 'all' || item.type === filter;
-    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         item.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesSearch =
+      item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.tags || []).some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesFilter && matchesSearch;
   });
 
@@ -184,8 +165,15 @@ export default function EvidenceVault() {
     documents: localEvidenceItems.filter(i => i.type === 'document').length,
     certifications: localEvidenceItems.filter(i => i.type === 'certification').length,
     media: localEvidenceItems.filter(i => i.type === 'media').length,
-    achievements: localEvidenceItems.filter(i => i.type === 'achievement').length,
   };
+
+  if (isLoading) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-[500px]">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 space-y-8">
@@ -196,9 +184,12 @@ export default function EvidenceVault() {
             Centralized repository of your work, achievements, and credentials
           </p>
         </div>
-        
-        <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity">
-          + Upload Evidence
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          Upload Evidence
         </button>
       </div>
 
@@ -212,22 +203,23 @@ export default function EvidenceVault() {
       </div>
 
       {/* Featured Items */}
-      <div>
-        <div className="flex items-center gap-2 mb-4">
-          <Star className="w-5 h-5 text-orange-500 fill-orange-500" />
-          <h3 className="text-lg font-semibold">Featured Evidence</h3>
+      {localEvidenceItems.filter(i => i.featured).length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <Star className="w-5 h-5 text-orange-500 fill-orange-500" />
+            <h3 className="text-lg font-semibold">Featured Evidence</h3>
+          </div>
+          <div className="flex overflow-x-auto gap-6 pb-4 no-scrollbar">
+            {localEvidenceItems.filter(item => item.featured).map((item) => (
+              <div key={item._id || item.id} className="min-w-[340px] flex-shrink-0">
+                <FeaturedCard item={item} onToggleStar={handleToggleStar} />
+              </div>
+            ))}
+          </div>
         </div>
-        
-        <div className="flex overflow-x-auto gap-6 pb-4 no-scrollbar">
-          {localEvidenceItems.filter(item => item.featured).map((item) => (
-            <div key={item.id} className="min-w-[340px] flex-shrink-0">
-              <FeaturedCard item={item} onToggleStar={handleToggleStar} />
-            </div>
-          ))}
-        </div>
-      </div>
+      )}
 
-      {/* Search and Filter (Moved below Featured) */}
+      {/* Search and Filter */}
       <div className="flex items-center gap-4 pt-4 border-t border-border">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -241,50 +233,196 @@ export default function EvidenceVault() {
         </div>
 
         <div className="flex items-center gap-2 bg-card border border-border rounded-lg p-1 flex-wrap">
-          <FilterButton 
-            active={filter === 'all'} 
-            onClick={() => setFilter('all')}
-            label="All"
-          />
-          <FilterButton 
-            active={filter === 'project'} 
-            onClick={() => setFilter('project')}
-            label="Projects"
-          />
-          <FilterButton 
-            active={filter === 'document'} 
-            onClick={() => setFilter('document')}
-            label="Documents"
-          />
-          <FilterButton 
-            active={filter === 'certification'} 
-            onClick={() => setFilter('certification')}
-            label="Certs"
-          />
-          <FilterButton 
-            active={filter === 'media'} 
-            onClick={() => setFilter('media')}
-            label="Media"
-          />
-          <FilterButton 
-            active={filter === 'achievement'} 
-            onClick={() => setFilter('achievement')}
-            label="Achievements"
-          />
+          {['all', 'project', 'document', 'certification', 'media', 'achievement'].map(f => (
+            <FilterButton key={f} active={filter === f} onClick={() => setFilter(f)} label={f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1) + 's'} />
+          ))}
         </div>
       </div>
 
       {/* All Evidence */}
       <div>
         <h3 className="text-lg font-semibold mb-4">All Evidence ({filteredItems.length})</h3>
-        
-        <div className="grid grid-cols-2 gap-4">
-          {filteredItems.map((item) => (
-            <EvidenceCard key={item.id} item={item} onToggleStar={handleToggleStar} />
-          ))}
-        </div>
+
+        {filteredItems.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-accent flex items-center justify-center mb-4">
+              <Archive className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h4 className="text-lg font-semibold mb-2">No evidence yet</h4>
+            <p className="text-sm text-muted-foreground mb-4 max-w-sm">
+              Start building your portfolio by uploading projects, documents, certifications, or links.
+            </p>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
+            >
+              Add Your First Item
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4">
+            {filteredItems.map((item) => (
+              <EvidenceCard key={item._id || item.id} item={item} onToggleStar={handleToggleStar} />
+            ))}
+          </div>
+        )}
       </div>
+
+      {/* Add Evidence Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+          <div className="bg-card w-full max-w-lg border border-border rounded-xl shadow-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h2 className="font-semibold text-lg">Add Evidence</h2>
+              <button onClick={() => setIsModalOpen(false)} className="p-1 hover:bg-accent rounded-md transition-colors">
+                <X className="w-5 h-5 text-muted-foreground" />
+              </button>
+            </div>
+            <form onSubmit={handleAddEvidence} className="p-4 space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Title <span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  required
+                  value={newEvidence.title}
+                  onChange={(e) => setNewEvidence({ ...newEvidence, title: e.target.value })}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  placeholder="My Awesome Project"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Description</label>
+                <textarea
+                  value={newEvidence.description}
+                  onChange={(e) => setNewEvidence({ ...newEvidence, description: e.target.value })}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 h-20"
+                  placeholder="What did you build or achieve?"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Type</label>
+                  <select
+                    value={newEvidence.type}
+                    onChange={(e) => setNewEvidence({ ...newEvidence, type: e.target.value })}
+                    className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
+                    {EVIDENCE_TYPES.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Format</label>
+                  <select
+                    value={newEvidence.format}
+                    onChange={(e) => setNewEvidence({ ...newEvidence, format: e.target.value })}
+                    className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
+                    {FORMATS.map(f => <option key={f} value={f}>{f.toUpperCase()}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">URL / Link</label>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={newEvidence.url}
+                    onChange={(e) => {
+                      setNewEvidence({ ...newEvidence, url: e.target.value });
+                      setGithubResult(null);
+                    }}
+                    className="flex-1 px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    placeholder="https://github.com/yourproject"
+                  />
+                  {isGithubUrl(newEvidence.url) && (
+                    <button
+                      type="button"
+                      onClick={handleAnalyzeGithub}
+                      disabled={isAnalyzing}
+                      className="flex items-center gap-1.5 px-3 py-2 bg-gray-900 text-white rounded-md text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-60 whitespace-nowrap"
+                    >
+                      {isAnalyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Github className="w-4 h-4" />}
+                      {isAnalyzing ? 'Analyzing...' : 'Auto-fill'}
+                    </button>
+                  )}
+                </div>
+                {githubResult && (
+                  <div className="mt-2 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                    <div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm font-medium mb-2">
+                      <CheckCircle2 className="w-4 h-4" />
+                      GitHub repo analyzed!
+                    </div>
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      <div>⭐ {githubResult.repo.stars} stars · 🍴 {githubResult.repo.forks} forks</div>
+                      <div>Languages: {githubResult.languages.slice(0, 4).map((l: any) => `${l.name} ${l.percentage}%`).join(' · ')}</div>
+                      {githubResult.skillsAutoAdded.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          <span className="text-green-600 dark:text-green-400 font-medium">Auto-added skills:</span>
+                          {githubResult.skillsAutoAdded.map((s: any) => (
+                            <span key={s.name} className="px-1.5 py-0.5 text-xs bg-green-500/10 text-green-700 dark:text-green-300 rounded">
+                              {s.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <div className="mt-1 text-amber-600 dark:text-amber-400 text-xs">
+                        <Zap className="w-3 h-3 inline mr-1" />
+                        Evidence entry already saved to vault. Click "Save Evidence" to confirm, or close to discard.
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Tags (comma separated)</label>
+                <input
+                  type="text"
+                  value={newEvidence.tags_input}
+                  onChange={(e) => setNewEvidence({ ...newEvidence, tags_input: e.target.value })}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  placeholder="React, TypeScript, open-source"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Impact</label>
+                <select
+                  value={newEvidence.impact}
+                  onChange={(e) => setNewEvidence({ ...newEvidence, impact: e.target.value })}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </div>
+              <div className="pt-4 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 border border-border rounded-md text-sm font-medium hover:bg-accent transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
+                >
+                  Save Evidence
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+function Archive({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+    </svg>
   );
 }
 
@@ -304,8 +442,8 @@ function FilterButton({ active, onClick, label }: any) {
       onClick={onClick}
       className={`
         px-4 py-2 rounded-md text-sm font-medium transition-colors
-        ${active 
-          ? 'bg-primary text-primary-foreground' 
+        ${active
+          ? 'bg-primary text-primary-foreground'
           : 'text-muted-foreground hover:text-foreground'
         }
       `}
@@ -316,8 +454,7 @@ function FilterButton({ active, onClick, label }: any) {
 }
 
 function FeaturedCard({ item, onToggleStar }: any) {
-  const TypeIcon = typeIcons[item.type as keyof typeof typeIcons];
-  const FormatIcon = formatIcons[item.format as keyof typeof formatIcons];
+  const TypeIcon = typeIcons[item.type] || FileText;
 
   return (
     <div className="bg-gradient-to-br from-chart-1/10 to-chart-2/10 border-2 border-primary/20 rounded-2xl p-6 hover:border-primary/40 transition-colors h-full flex flex-col">
@@ -325,18 +462,16 @@ function FeaturedCard({ item, onToggleStar }: any) {
         <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
           <TypeIcon className="w-6 h-6 text-primary" />
         </div>
-        <button 
+        <button
           className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded-md transition-colors flex-shrink-0"
-          onClick={() => onToggleStar && onToggleStar(item.id)}
+          onClick={() => onToggleStar && onToggleStar(item._id || item.id)}
         >
           <Star className="w-5 h-5 text-orange-500 fill-orange-500" />
         </button>
       </div>
 
       <h4 className="font-semibold mb-2">{item.title}</h4>
-      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-        {item.description}
-      </p>
+      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{item.description}</p>
 
       <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
         <Calendar className="w-3.5 h-3.5" />
@@ -344,19 +479,11 @@ function FeaturedCard({ item, onToggleStar }: any) {
       </div>
 
       <div className="flex flex-wrap gap-1.5">
-        {item.linkedTo.slice(0, 3).map((skill: string) => (
-          <span
-            key={skill}
-            className="px-2 py-1 text-xs font-medium rounded-md bg-accent text-accent-foreground"
-          >
-            {skill}
+        {(item.linkedTo || item.tags || []).slice(0, 3).map((tag: string) => (
+          <span key={tag} className="px-2 py-1 text-xs font-medium rounded-md bg-accent text-accent-foreground">
+            {tag}
           </span>
         ))}
-        {item.linkedTo.length > 3 && (
-          <span className="px-2 py-1 text-xs font-medium text-muted-foreground">
-            +{item.linkedTo.length - 3}
-          </span>
-        )}
       </div>
     </div>
   );
@@ -364,10 +491,10 @@ function FeaturedCard({ item, onToggleStar }: any) {
 
 function EvidenceCard({ item, onToggleStar }: any) {
   const isStarred = item.featured;
-  const TypeIcon = typeIcons[item.type as keyof typeof typeIcons];
-  const FormatIcon = formatIcons[item.format as keyof typeof formatIcons];
+  const TypeIcon = typeIcons[item.type] || FileText;
+  const FormatIcon = formatIcons[item.format] || LinkIcon;
 
-  const impactColors = {
+  const impactColors: Record<string, string> = {
     high: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20',
     medium: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',
     low: 'bg-muted text-muted-foreground',
@@ -389,13 +516,15 @@ function EvidenceCard({ item, onToggleStar }: any) {
           <div className="flex items-start justify-between gap-2 mb-2">
             <h4 className="font-semibold">{item.title}</h4>
             <div className="flex items-center gap-1 flex-shrink-0">
-              <span className={`px-2 py-0.5 mr-2 text-xs font-medium rounded-md border ${impactColors[item.impact as keyof typeof impactColors]}`}>
-                {item.impact}
-              </span>
+              {item.impact && (
+                <span className={`px-2 py-0.5 mr-2 text-xs font-medium rounded-md border ${impactColors[item.impact] || impactColors.low}`}>
+                  {item.impact}
+                </span>
+              )}
               <button
                 className={`p-1.5 hover:bg-accent rounded-md transition-colors ${isStarred ? 'text-orange-500' : 'text-muted-foreground'}`}
-                title={isStarred ? "Remove from featured" : "Feature this evidence"}
-                onClick={(e) => { e.stopPropagation(); if(onToggleStar) onToggleStar(item.id); }}
+                title={isStarred ? 'Remove from featured' : 'Feature this evidence'}
+                onClick={(e) => { e.stopPropagation(); if (onToggleStar) onToggleStar(item._id || item.id); }}
               >
                 <Star className={`w-4 h-4 ${isStarred ? 'fill-orange-500' : ''}`} />
               </button>
@@ -411,31 +540,26 @@ function EvidenceCard({ item, onToggleStar }: any) {
             </div>
           </div>
 
-          <p className="text-sm text-muted-foreground mb-3 line-clamp-1">
-            {item.description}
-          </p>
+          <p className="text-sm text-muted-foreground mb-3 line-clamp-1">{item.description}</p>
 
           <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
             <div className="flex items-center gap-1">
               <FormatIcon className="w-3.5 h-3.5" />
-              {item.format.toUpperCase()}
+              {(item.format || 'link').toUpperCase()}
             </div>
             <div className="flex items-center gap-1">
               <Calendar className="w-3.5 h-3.5" />
-              {item.date}
+              {item.date || 'No date'}
             </div>
             <div className="flex items-center gap-1">
               <Tag className="w-3.5 h-3.5" />
-              {item.linkedTo.length} skills
+              {(item.linkedTo || []).length} skills
             </div>
           </div>
 
           <div className="flex flex-wrap gap-1.5">
-            {item.tags.map((tag: string) => (
-              <span
-                key={tag}
-                className="px-2 py-0.5 text-xs rounded-md bg-accent text-accent-foreground"
-              >
+            {(item.tags || []).map((tag: string) => (
+              <span key={tag} className="px-2 py-0.5 text-xs rounded-md bg-accent text-accent-foreground">
                 {tag}
               </span>
             ))}

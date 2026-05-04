@@ -12,8 +12,11 @@ import {
   Settings
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { api } from '../api';
+import { useAuth } from '../context/AuthContext';
 
 export default function Export() {
+  const { user } = useAuth();
   const [selectedSections, setSelectedSections] = useState({
     summary: true,
     skills: true,
@@ -33,22 +36,69 @@ export default function Export() {
     }));
   };
 
-  const handleExport = () => {
-    const sectionCount = Object.values(selectedSections).filter(Boolean).length;
+  const handleExport = async () => {
     const id = toast.loading(`Preparing ${format.toUpperCase()} export...`);
-    setTimeout(() => {
-      toast.success(`${format.toUpperCase()} exported successfully!`, {
-        id,
-        description: `${sectionCount} sections · ${template} template`,
-      });
-    }, 1500);
+    try {
+      const [recordsRes, skillsRes] = await Promise.allSettled([api.getRecords(), api.getSkills()]);
+      const records = recordsRes.status === 'fulfilled' ? (recordsRes.value.data || []) : [];
+      const skills = skillsRes.status === 'fulfilled' ? (skillsRes.value.data || []) : [];
+
+      const exportData: any = {};
+      if (selectedSections.summary) exportData.summary = { name: user?.name, email: user?.email, exportedAt: new Date().toISOString() };
+      if (selectedSections.skills) exportData.skills = skills;
+      if (selectedSections.internships) exportData.internships = records.filter((r: any) => r.type === 'internship');
+      if (selectedSections.certifications) exportData.certifications = records.filter((r: any) => r.type === 'certification');
+
+      let blob: Blob;
+      let filename: string;
+
+      if (format === 'json') {
+        blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        filename = `skilltrack-export-${Date.now()}.json`;
+      } else if (format === 'markdown') {
+        let md = `# SkillTrack Portfolio — ${user?.name || 'User'}\n\n`;
+        if (exportData.summary) md += `**Exported:** ${new Date().toLocaleDateString()}\n\n`;
+        if (exportData.skills) {
+          md += `## Skills\n`;
+          exportData.skills.forEach((s: any) => { md += `- **${s.skill_name}** — Level: ${s.skill_level}% (${s.category || 'General'})\n`; });
+          md += '\n';
+        }
+        if (exportData.internships) {
+          md += `## Internships\n`;
+          exportData.internships.forEach((i: any) => { md += `- **${i.title}** at ${i.organization} (${i.start_date || 'N/A'})\n  ${i.description || ''}\n`; });
+          md += '\n';
+        }
+        if (exportData.certifications) {
+          md += `## Certifications\n`;
+          exportData.certifications.forEach((c: any) => { md += `- **${c.title || c.name}** by ${c.organization || c.issuer}\n`; });
+        }
+        blob = new Blob([md], { type: 'text/markdown' });
+        filename = `skilltrack-export-${Date.now()}.md`;
+      } else {
+        // PDF: call backend to generate styled PDF
+        blob = await api.exportPDF({ sections: selectedSections, template });
+        filename = `${user?.name?.replace(/\s+/g, '_') || 'Portfolio'}_Export.pdf`;
+      }
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      toast.success(`${format.toUpperCase()} exported successfully!`, { id, description: `${Object.values(selectedSections).filter(Boolean).length} sections` });
+    } catch (err) {
+      toast.error('Export failed. Please try again.', { id });
+    }
   };
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText('https://portfolio.example.com/share/abc123').then(() => {
-      toast.success('Link copied to clipboard!', {
-        description: 'Share this link with recruiters or colleagues.',
-      });
+    const shareUrl = `${window.location.origin}/portfolio/${user?.id || 'me'}`;
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      toast.success('Link copied to clipboard!', { description: 'Share this link with recruiters or colleagues.' });
+    }).catch(() => {
+      toast.error('Failed to copy link.');
     });
   };
 
