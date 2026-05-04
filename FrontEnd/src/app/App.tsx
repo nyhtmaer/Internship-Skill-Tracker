@@ -51,14 +51,14 @@ export default function App() {
       try {
         setIsInitializing(true);
         
-        //  testing Initialize URL configuration from backend
-       // const config = await initializeUrlConfig();
-       // console.log(' URL configuration initialized:', config);
+        // Initialize URL configuration from backend
+       const config = await initializeUrlConfig();
+       console.log(' URL configuration initialized:', config);
 
         // Update API client with configured URL
         apiClient.updateBaseURL(config.apiUrl);
 
-        // testing Check backend connection
+        // Check backend connection
         const health = await checkBackendConnection(config.apiUrl);
         setBackendHealth(health);
 
@@ -81,7 +81,15 @@ export default function App() {
   }, []);
 
   //  without Apply dark class to <html> so SVG/Recharts CSS vars inherit correctly
-  
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDark]);
 
   // Command palette keyboard shortcut
   useEffect(() => {
