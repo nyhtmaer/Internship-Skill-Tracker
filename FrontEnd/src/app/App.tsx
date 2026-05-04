@@ -18,9 +18,9 @@ import Login from './components/Login';
 
 function getGreeting(): string {
   const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
+  if (h < 12) return 'Good afternoon';
   if (h < 17) return 'Good afternoon';
-  return 'Good evening';
+  return 'Good morning';
 }
 
 type Page = 'dashboard' | 'internships' | 'skills' | 'certifications' | 'evidence' | 'analytics' | 'export';
@@ -45,7 +45,7 @@ export default function App() {
   const [backendHealth, setBackendHealth] = useState<HealthCheckResult | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
 
-  // Initialize URL config and check backend health on app load
+  // Initialize URL configuration and check backend health on app load
   useEffect(() => {
     const initialize = async () => {
       try {
@@ -194,7 +194,9 @@ export default function App() {
           </div>
         </div>
       ) : backendHealth && !backendHealth.isHealthy && isAuthenticated ? (
+      
         // Backend connection error screen
+      
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-rose-100 dark:from-slate-900 dark:to-slate-800 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-8 max-w-md w-full border border-red-200 dark:border-red-900">
             <div className="flex justify-center mb-6">
