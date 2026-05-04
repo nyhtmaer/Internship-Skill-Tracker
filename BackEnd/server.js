@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 // Serve uploaded files as static assets
 app.use('/uploads', express.static('./uploads'));
 
-// API health check endpoint
+// Health check endpoint for API monitoring
 app.get('/api/v1/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
