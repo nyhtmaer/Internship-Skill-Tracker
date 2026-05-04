@@ -6,439 +6,367 @@ import {
   Link as LinkIcon,
   Code,
   Award,
-  Briefcase,
-  Calendar,
-  Tag,
+  Upload,
   Search,
   Filter,
   Download,
   ExternalLink,
-  Star
+  Star,
+  Loader,
+  AlertCircle,
+  CheckCircle
 } from 'lucide-react';
-
-const evidenceItems = [
-  {
-    id: 1,
-    title: 'E-commerce Dashboard React App',
-    type: 'project',
-    format: 'code',
-    date: 'Feb 5, 2026',
-    tags: ['React', 'TypeScript', 'Tailwind'],
-    linkedTo: ['React', 'TypeScript', 'UI/UX'],
-    description: 'Full-featured admin dashboard with real-time analytics',
-    url: 'https://github.com/user/ecommerce-dashboard',
-    featured: true,
-    impact: 'high',
-  },
-  {
-    id: 2,
-    title: 'Meta Internship Offer Letter',
-    type: 'document',
-    format: 'pdf',
-    date: 'Jan 10, 2026',
-    tags: ['Internship', 'Meta'],
-    linkedTo: ['React', 'Frontend'],
-    description: 'Official offer letter for Frontend Engineering Intern position',
-    featured: true,
-    impact: 'high',
-  },
-  {
-    id: 3,
-    title: 'AWS Cloud Practitioner Certificate',
-    type: 'certification',
-    format: 'pdf',
-    date: 'Jan 15, 2026',
-    tags: ['AWS', 'Cloud', 'DevOps'],
-    linkedTo: ['AWS', 'Cloud Computing', 'DevOps'],
-    description: 'AWS Certified Cloud Practitioner credential',
-    url: 'https://aws.amazon.com/verify/12345',
-    featured: false,
-    impact: 'high',
-  },
-  {
-    id: 4,
-    title: 'Payment Integration Demo Video',
-    type: 'media',
-    format: 'video',
-    date: 'Dec 20, 2025',
-    tags: ['Stripe', 'Node.js', 'API'],
-    linkedTo: ['Node.js', 'API Development'],
-    description: 'Walkthrough of custom payment SDK implementation',
-    featured: false,
-    impact: 'medium',
-  },
-  {
-    id: 5,
-    title: 'Open Source Contribution - React',
-    type: 'project',
-    format: 'link',
-    date: 'Nov 28, 2025',
-    tags: ['React', 'Open Source', 'TypeScript'],
-    linkedTo: ['React', 'TypeScript', 'Open Source'],
-    description: 'PR merged to React core library for performance optimization',
-    url: 'https://github.com/facebook/react/pull/12345',
-    featured: true,
-    impact: 'high',
-  },
-  {
-    id: 6,
-    title: 'Hackathon Winner Certificate',
-    type: 'achievement',
-    format: 'pdf',
-    date: 'Oct 15, 2025',
-    tags: ['Hackathon', 'AI', 'Full Stack'],
-    linkedTo: ['React', 'Node.js', 'AI/ML'],
-    description: '1st place at TechCrunch Disrupt Hackathon',
-    featured: true,
-    impact: 'high',
-  },
-  {
-    id: 7,
-    title: 'Database Migration Tool Code',
-    type: 'project',
-    format: 'code',
-    date: 'Sep 30, 2025',
-    tags: ['PostgreSQL', 'Python', 'DevOps'],
-    linkedTo: ['PostgreSQL', 'Python'],
-    description: 'Automated database migration and backup utility',
-    url: 'https://github.com/user/db-migration-tool',
-    featured: false,
-    impact: 'medium',
-  },
-  {
-    id: 8,
-    title: 'UI Design Portfolio Screenshots',
-    type: 'media',
-    format: 'image',
-    date: 'Aug 22, 2025',
-    tags: ['Design', 'Figma', 'UI/UX'],
-    linkedTo: ['UI/UX', 'Design'],
-    description: 'Collection of UI designs for mobile and web apps',
-    featured: false,
-    impact: 'medium',
-  },
-  {
-    id: 9,
-    title: 'Conference Talk - Modern React Patterns',
-    type: 'media',
-    format: 'video',
-    date: 'Jul 10, 2025',
-    tags: ['React', 'Public Speaking'],
-    linkedTo: ['React', 'Communication'],
-    description: 'Presented at ReactConf 2025',
-    url: 'https://youtube.com/watch?v=abc123',
-    featured: true,
-    impact: 'high',
-  },
-  {
-    id: 10,
-    title: 'Recommendation Letter - Stripe Manager',
-    type: 'document',
-    format: 'pdf',
-    date: 'Dec 28, 2025',
-    tags: ['Internship', 'Stripe', 'Recommendation'],
-    linkedTo: ['Node.js', 'Full Stack'],
-    description: 'Letter of recommendation from engineering manager',
-    featured: false,
-    impact: 'high',
-  },
-];
-
-const typeIcons = {
-  project: Code,
-  document: FileText,
-  certification: Award,
-  media: Image,
-  achievement: Star,
-};
-
-const formatIcons = {
-  code: Code,
-  pdf: FileText,
-  video: Video,
-  image: Image,
-  link: LinkIcon,
-};
+import { apiClient } from '../../services/apiClient';
 
 export default function EvidenceVault() {
-  const [filter, setFilter] = useState('all');
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [localEvidenceItems, setLocalEvidenceItems] = useState(evidenceItems);
+  const [filterType, setFilterType] = useState('all');
+  const [uploadStatus, setUploadStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
-  const handleToggleStar = (id: number) => {
-    setLocalEvidenceItems(prev => prev.map(item => 
-      item.id === id ? { ...item, featured: !item.featured } : item
-    ));
+  const typeIcons = {
+    project: Code,
+    document: FileText,
+    certification: Award,
+    media: Video,
+    achievement: Award,
+    link: LinkIcon,
   };
 
-  const filteredItems = localEvidenceItems.filter(item => {
-    const matchesFilter = filter === 'all' || item.type === filter;
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = e.dataTransfer.files;
+    handleFileUpload(files);
+  };
+
+  const handleFileChange = (e) => {
+    const files = e.target.files;
+    handleFileUpload(files);
+  };
+
+  const handleFileUpload = async (files) => {
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    setUploadStatus(null);
+    
+    try {
+      const uploadedFilesData = [];
+      const errors = [];
+      
+      for (const file of Array.from(files)) {
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+          
+          console.log(`📤 Uploading: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+          
+          const result = await apiClient.uploadEvidence(formData);
+          
+          // result format: { success: true, filename: "uuid.ext" }
+          if (!result.filename) {
+            throw new Error('No filename returned from server');
+          }
+          
+          const uploadedFile = {
+            id: Date.now() + Math.random(),
+            title: file.name.replace(/\.[^/.]+$/, ''),
+            type: 'document',
+            filename: result.filename,
+            format: file.type.split('/')[1] || 'file',
+            date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            tags: [file.type.split('/')[0]],
+            linkedTo: [],
+            description: file.name,
+            url: `http://localhost:5000/uploads/${result.filename}`,
+            featured: false,
+            impact: 'medium',
+          };
+          
+          uploadedFilesData.push(uploadedFile);
+          console.log(`✅ Uploaded: ${file.name} → ${result.filename}`);
+        } catch (error) {
+          const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+          console.error(`❌ Failed to upload ${file.name}:`, errorMsg);
+          errors.push(`${file.name}: ${errorMsg}`);
+        }
+      }
+      
+      if (uploadedFilesData.length > 0) {
+        setUploadedFiles([...uploadedFilesData, ...uploadedFiles]);
+        setUploadStatus({
+          type: 'success',
+          message: `✅ Successfully uploaded ${uploadedFilesData.length} file${uploadedFilesData.length !== 1 ? 's' : ''}`,
+        });
+      }
+      
+      if (errors.length > 0) {
+        setUploadStatus({
+          type: 'error',
+          message: `⚠️ Failed to upload ${errors.length} file${errors.length !== 1 ? 's' : ''}: ${errors.join('; ')}`,
+        });
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Upload error:', errorMsg);
+      setUploadStatus({
+        type: 'error',
+        message: `❌ Upload failed: ${errorMsg}`,
+      });
+    } finally {
+      setIsUploading(false);
+      // Clear status after 5 seconds
+      setTimeout(() => setUploadStatus(null), 5000);
+    }
+  };
+
+  const filteredItems = uploadedFiles.filter(item => {
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          item.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesFilter && matchesSearch;
+    const matchesFilter = filterType === 'all' || item.type === filterType;
+    return matchesSearch && matchesFilter;
   });
-
-  const stats = {
-    total: localEvidenceItems.length,
-    projects: localEvidenceItems.filter(i => i.type === 'project').length,
-    documents: localEvidenceItems.filter(i => i.type === 'document').length,
-    certifications: localEvidenceItems.filter(i => i.type === 'certification').length,
-    media: localEvidenceItems.filter(i => i.type === 'media').length,
-    achievements: localEvidenceItems.filter(i => i.type === 'achievement').length,
-  };
 
   return (
     <div className="p-8 space-y-8">
-      <div className="flex items-start justify-between">
-        <div>
-          <h2 className="text-3xl font-semibold mb-2">Evidence Vault</h2>
-          <p className="text-muted-foreground">
-            Centralized repository of your work, achievements, and credentials
+      {/* Header */}
+      <div>
+        <h2 className="text-3xl font-semibold mb-2">Evidence Vault</h2>
+        <p className="text-muted-foreground">
+          Upload and organize evidence of your skills, projects, and achievements
+        </p>
+      </div>
+
+      {/* Upload Section */}
+      <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={`border-2 border-dashed rounded-2xl p-12 text-center transition-colors ${
+          isDragging
+            ? 'border-primary bg-primary/5'
+            : 'border-border hover:border-primary/50'
+        }`}
+      >
+        <div className="flex justify-center mb-4">
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+            <Upload className="w-8 h-8 text-primary" />
+          </div>
+        </div>
+        <h3 className="text-lg font-semibold mb-2">Upload Evidence</h3>
+        <p className="text-muted-foreground mb-6">
+          Drag and drop your files here, or click to browse
+        </p>
+        <input
+          type="file"
+          multiple
+          onChange={handleFileChange}
+          className="hidden"
+          id="file-input"
+          disabled={isUploading}
+        />
+        <label htmlFor="file-input">
+          <button
+            onClick={() => document.getElementById('file-input')?.click()}
+            className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+            disabled={isUploading}
+          >
+            {isUploading ? (
+              <>
+                <Loader className="w-4 h-4 inline mr-2 animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              'Choose Files'
+            )}
+          </button>
+        </label>
+      </div>
+
+      {/* Upload Status Message */}
+      {uploadStatus && (
+        <div
+          className={`p-4 rounded-lg flex items-start gap-3 ${
+            uploadStatus.type === 'success'
+              ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
+              : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
+          }`}
+        >
+          {uploadStatus.type === 'success' ? (
+            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+          ) : (
+            <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+          )}
+          <p className={uploadStatus.type === 'success' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}>
+            {uploadStatus.message}
           </p>
         </div>
-        
-        <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity">
-          + Upload Evidence
-        </button>
-      </div>
+      )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-5 gap-4">
-        <StatCard label="Total Items" value={stats.total} icon={FileText} />
-        <StatCard label="Projects" value={stats.projects} icon={Code} />
-        <StatCard label="Documents" value={stats.documents} icon={FileText} />
-        <StatCard label="Certifications" value={stats.certifications} icon={Award} />
-        <StatCard label="Media" value={stats.media} icon={Image} />
-      </div>
-
-      {/* Featured Items */}
-      <div>
-        <div className="flex items-center gap-2 mb-4">
-          <Star className="w-5 h-5 text-orange-500 fill-orange-500" />
-          <h3 className="text-lg font-semibold">Featured Evidence</h3>
-        </div>
-        
-        <div className="flex overflow-x-auto gap-6 pb-4 no-scrollbar">
-          {localEvidenceItems.filter(item => item.featured).map((item) => (
-            <div key={item.id} className="min-w-[340px] flex-shrink-0">
-              <FeaturedCard item={item} onToggleStar={handleToggleStar} />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Search and Filter (Moved below Featured) */}
-      <div className="flex items-center gap-4 pt-4 border-t border-border">
+      {/* Search & Filter */}
+      <div className="flex gap-4">
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search evidence by title or tags..."
+            placeholder="Search evidence..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 rounded-lg bg-card border border-border focus:outline-none focus:ring-2 focus:ring-primary/50"
+            className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-card focus:outline-none focus:border-primary"
           />
         </div>
-
-        <div className="flex items-center gap-2 bg-card border border-border rounded-lg p-1 flex-wrap">
-          <FilterButton 
-            active={filter === 'all'} 
-            onClick={() => setFilter('all')}
-            label="All"
-          />
-          <FilterButton 
-            active={filter === 'project'} 
-            onClick={() => setFilter('project')}
-            label="Projects"
-          />
-          <FilterButton 
-            active={filter === 'document'} 
-            onClick={() => setFilter('document')}
-            label="Documents"
-          />
-          <FilterButton 
-            active={filter === 'certification'} 
-            onClick={() => setFilter('certification')}
-            label="Certs"
-          />
-          <FilterButton 
-            active={filter === 'media'} 
-            onClick={() => setFilter('media')}
-            label="Media"
-          />
-          <FilterButton 
-            active={filter === 'achievement'} 
-            onClick={() => setFilter('achievement')}
-            label="Achievements"
-          />
-        </div>
-      </div>
-
-      {/* All Evidence */}
-      <div>
-        <h3 className="text-lg font-semibold mb-4">All Evidence ({filteredItems.length})</h3>
-        
-        <div className="grid grid-cols-2 gap-4">
-          {filteredItems.map((item) => (
-            <EvidenceCard key={item.id} item={item} onToggleStar={handleToggleStar} />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function StatCard({ label, value, icon: Icon }: any) {
-  return (
-    <div className="bg-card border border-border rounded-xl p-4">
-      <Icon className="w-8 h-8 p-1.5 rounded-lg bg-accent text-muted-foreground mb-3" />
-      <div className="text-2xl font-bold mb-1">{value}</div>
-      <div className="text-xs text-muted-foreground">{label}</div>
-    </div>
-  );
-}
-
-function FilterButton({ active, onClick, label }: any) {
-  return (
-    <button
-      onClick={onClick}
-      className={`
-        px-4 py-2 rounded-md text-sm font-medium transition-colors
-        ${active 
-          ? 'bg-primary text-primary-foreground' 
-          : 'text-muted-foreground hover:text-foreground'
-        }
-      `}
-    >
-      {label}
-    </button>
-  );
-}
-
-function FeaturedCard({ item, onToggleStar }: any) {
-  const TypeIcon = typeIcons[item.type as keyof typeof typeIcons];
-  const FormatIcon = formatIcons[item.format as keyof typeof formatIcons];
-
-  return (
-    <div className="bg-gradient-to-br from-chart-1/10 to-chart-2/10 border-2 border-primary/20 rounded-2xl p-6 hover:border-primary/40 transition-colors h-full flex flex-col">
-      <div className="flex items-start justify-between mb-4">
-        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-          <TypeIcon className="w-6 h-6 text-primary" />
-        </div>
-        <button 
-          className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded-md transition-colors flex-shrink-0"
-          onClick={() => onToggleStar && onToggleStar(item.id)}
-        >
-          <Star className="w-5 h-5 text-orange-500 fill-orange-500" />
-        </button>
-      </div>
-
-      <h4 className="font-semibold mb-2">{item.title}</h4>
-      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-        {item.description}
-      </p>
-
-      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
-        <Calendar className="w-3.5 h-3.5" />
-        {item.date}
-      </div>
-
-      <div className="flex flex-wrap gap-1.5">
-        {item.linkedTo.slice(0, 3).map((skill: string) => (
-          <span
-            key={skill}
-            className="px-2 py-1 text-xs font-medium rounded-md bg-accent text-accent-foreground"
+        <div className="flex items-center gap-2">
+          <Filter className="w-4 h-4 text-muted-foreground" />
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="px-4 py-2 border border-border rounded-lg bg-card focus:outline-none focus:border-primary"
           >
-            {skill}
-          </span>
-        ))}
-        {item.linkedTo.length > 3 && (
-          <span className="px-2 py-1 text-xs font-medium text-muted-foreground">
-            +{item.linkedTo.length - 3}
-          </span>
+            <option value="all">All Types</option>
+            <option value="project">Projects</option>
+            <option value="document">Documents</option>
+            <option value="certification">Certifications</option>
+            <option value="media">Media</option>
+            <option value="achievement">Achievements</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Evidence Grid */}
+      <div>
+        <div className="mb-4">
+          <p className="text-sm text-muted-foreground">
+            {filteredItems.length} item{filteredItems.length !== 1 ? 's' : ''} {filterType !== 'all' && `· Showing ${filterType}s`}
+          </p>
+        </div>
+
+        {filteredItems.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredItems.map((item) => {
+              const IconComponent = typeIcons[item.type] || FileText;
+              return (
+                <EvidenceCard key={item.id} item={item} IconComponent={IconComponent} />
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-16 bg-card border border-border rounded-2xl">
+            <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+            <p className="text-muted-foreground">
+              {uploadedFiles.length === 0
+                ? 'No evidence uploaded yet. Start by uploading your first file!'
+                : 'No evidence matches your search.'}
+            </p>
+          </div>
         )}
       </div>
+
+      {/* Tips Section */}
+      <div className="bg-card border border-border rounded-2xl p-6">
+        <h3 className="font-semibold mb-4">📋 What Evidence to Upload</h3>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p className="font-medium mb-2">💼 Projects</p>
+            <p className="text-muted-foreground">GitHub repos, code samples, live demos</p>
+          </div>
+          <div>
+            <p className="font-medium mb-2">🏆 Certifications</p>
+            <p className="text-muted-foreground">Certificates, course completion, credentials</p>
+          </div>
+          <div>
+            <p className="font-medium mb-2">📄 Documents</p>
+            <p className="text-muted-foreground">Offer letters, recommendations, testimonials</p>
+          </div>
+          <div>
+            <p className="font-medium mb-2">🎥 Media</p>
+            <p className="text-muted-foreground">Videos, presentations, portfolio screenshots</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
-function EvidenceCard({ item, onToggleStar }: any) {
-  const isStarred = item.featured;
-  const TypeIcon = typeIcons[item.type as keyof typeof typeIcons];
-  const FormatIcon = formatIcons[item.format as keyof typeof formatIcons];
-
+function EvidenceCard({ item, IconComponent }) {
   const impactColors = {
-    high: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20',
-    medium: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',
-    low: 'bg-muted text-muted-foreground',
+    high: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
+    medium: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300',
+    low: 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300',
   };
 
   return (
-    <div className="bg-card border border-border rounded-xl p-5 hover:border-primary/50 transition-colors">
-      <div className="flex items-start gap-4">
-        <div className="flex flex-col items-center gap-1.5 flex-shrink-0 w-16">
-          <div className="w-12 h-12 rounded-lg bg-accent flex items-center justify-center">
-            <TypeIcon className="w-6 h-6" />
-          </div>
-          <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground w-full text-center overflow-hidden text-ellipsis">
-            {item.type}
-          </span>
+    <div className="bg-card border border-border rounded-xl hover:border-primary/50 transition-colors overflow-hidden group">
+      {/* Icon Header */}
+      <div className="bg-gradient-to-br from-primary/10 to-primary/5 p-4 flex items-start justify-between">
+        <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+          <IconComponent className="w-6 h-6 text-primary" />
+        </div>
+        {item.featured && (
+          <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="p-4 space-y-3">
+        <div>
+          <h4 className="font-semibold truncate group-hover:text-primary transition-colors">
+            {item.title}
+          </h4>
+          <p className="text-xs text-muted-foreground mt-1">{item.date}</p>
         </div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2 mb-2">
-            <h4 className="font-semibold">{item.title}</h4>
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <span className={`px-2 py-0.5 mr-2 text-xs font-medium rounded-md border ${impactColors[item.impact as keyof typeof impactColors]}`}>
-                {item.impact}
-              </span>
-              <button
-                className={`p-1.5 hover:bg-accent rounded-md transition-colors ${isStarred ? 'text-orange-500' : 'text-muted-foreground'}`}
-                title={isStarred ? "Remove from featured" : "Feature this evidence"}
-                onClick={(e) => { e.stopPropagation(); if(onToggleStar) onToggleStar(item.id); }}
-              >
-                <Star className={`w-4 h-4 ${isStarred ? 'fill-orange-500' : ''}`} />
-              </button>
-              {item.url && (
-                <button
-                  className="p-1.5 hover:bg-accent rounded-md transition-colors text-muted-foreground"
-                  title="Open link"
-                  onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')}
-                >
-                  <ExternalLink className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-          </div>
-
-          <p className="text-sm text-muted-foreground mb-3 line-clamp-1">
+        {item.description && (
+          <p className="text-sm text-muted-foreground line-clamp-2">
             {item.description}
           </p>
+        )}
 
-          <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
-            <div className="flex items-center gap-1">
-              <FormatIcon className="w-3.5 h-3.5" />
-              {item.format.toUpperCase()}
-            </div>
-            <div className="flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5" />
-              {item.date}
-            </div>
-            <div className="flex items-center gap-1">
-              <Tag className="w-3.5 h-3.5" />
-              {item.linkedTo.length} skills
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-1.5">
-            {item.tags.map((tag: string) => (
+        {/* Tags */}
+        {item.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {item.tags.map((tag) => (
               <span
                 key={tag}
-                className="px-2 py-0.5 text-xs rounded-md bg-accent text-accent-foreground"
+                className="text-xs px-2 py-1 bg-muted rounded-full text-muted-foreground"
               >
                 {tag}
               </span>
             ))}
+          </div>
+        )}
+
+        {/* Impact Badge & Actions */}
+        <div className="flex items-center justify-between pt-2 border-t border-border">
+          <span className={`text-xs font-medium px-2 py-1 rounded ${impactColors[item.impact]}`}>
+            {item.impact === 'high' ? '⭐' : item.impact === 'medium' ? '📌' : '○'} {item.impact}
+          </span>
+          <div className="flex gap-2">
+            {item.url && (
+              <a
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-1.5 hover:bg-muted rounded transition-colors"
+                title="View"
+              >
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            )}
+            <button className="p-1.5 hover:bg-muted rounded transition-colors" title="Download">
+              <Download className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
