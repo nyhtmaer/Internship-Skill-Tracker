@@ -4,14 +4,16 @@
  * Provides detailed error reporting for debugging
  */
 
-export interface HealthCheckResult {
+const DEFAULT_TIMEOUT_MS = 5000;
+
+export type HealthCheckResult = {
   isHealthy: boolean;
   apiUrl: string;
   status?: string;
   environment?: string;
   error?: string;
   timestamp?: string;
-}
+};
 
 /**
  * Check backend connection health
@@ -21,7 +23,7 @@ export interface HealthCheckResult {
  */
 export async function checkBackendConnection(
   apiUrl: string,
-  timeoutMs: number = 5000
+  timeoutMs: number = DEFAULT_TIMEOUT_MS
 ): Promise<HealthCheckResult> {
   try {
     const controller = new AbortController();
@@ -29,9 +31,7 @@ export async function checkBackendConnection(
 
     const response = await fetch(`${apiUrl}/api/v1/health`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       signal: controller.signal,
     });
 
@@ -41,7 +41,7 @@ export async function checkBackendConnection(
       return {
         isHealthy: false,
         apiUrl,
-        error: `Backend returned status ${response.status}`,
+        error: `Backend returned HTTP status ${response.status}`,
       };
     }
 
@@ -57,17 +57,16 @@ export async function checkBackendConnection(
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
 
-    // Determine specific error type
-    let userFriendlyError = 'Backend connection failed';
-    if (errorMessage.includes('abort')) {
-      userFriendlyError = `Backend unresponsive (timeout after ${timeoutMs}ms)`;
-    } else if (errorMessage.includes('Failed to fetch')) {
-      userFriendlyError = 'Cannot reach backend - CORS or network error';
-    } else if (errorMessage.includes('ERR_NETWORK')) {
-      userFriendlyError = 'Network error - check internet connection';
-    }
+    // Map known error patterns to user-friendly messages
+    const userFriendlyError = errorMessage.includes('abort')
+      ? `Backend unresponsive (timeout after ${timeoutMs}ms)`
+      : errorMessage.includes('Failed to fetch')
+      ? 'Cannot reach backend - CORS or network error'
+      : errorMessage.includes('ERR_NETWORK')
+      ? 'Network error - check internet connection'
+      : 'Backend connection failed';
 
-    console.error('❌ Health check failed:', {
+    console.warn('⚠️ Health check failed:', {
       apiUrl,
       error: errorMessage,
       userMessage: userFriendlyError,
@@ -90,7 +89,7 @@ export async function ensureBackendAvailable(apiUrl: string): Promise<void> {
 
   if (!result.isHealthy) {
     throw new Error(
-      `Backend unavailable: ${result.error}\n\nAPI URL: ${result.apiUrl}\n\nPlease ensure the backend server is running.`
+      `[Startup Error] Backend unavailable: ${result.error}\nAPI URL: ${result.apiUrl}\nPlease ensure the backend server is running.`
     );
   }
 }
