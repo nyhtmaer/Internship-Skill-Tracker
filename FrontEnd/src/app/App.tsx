@@ -18,9 +18,9 @@ import Login from './components/Login';
 
 function getGreeting(): string {
   const h = new Date().getHours();
-  if (h < 12) return 'Good afternoon';
+  if (h < 12) return 'Good morning';
   if (h < 17) return 'Good afternoon';
-  return 'Good morning';
+  return 'Good evening';
 }
 
 type Page = 'dashboard' | 'internships' | 'skills' | 'certifications' | 'evidence' | 'analytics' | 'export';
@@ -51,14 +51,14 @@ export default function App() {
       try {
         setIsInitializing(true);
         
-        // Initialize URL configuration from backend
-        const config = await initializeUrlConfig();
-        console.log(' URL configuration initialized:', config);
+        //  testing Initialize URL configuration from backend
+       // const config = await initializeUrlConfig();
+       // console.log(' URL configuration initialized:', config);
 
         // Update API client with configured URL
         apiClient.updateBaseURL(config.apiUrl);
 
-        // Check backend connection
+        // testing Check backend connection
         const health = await checkBackendConnection(config.apiUrl);
         setBackendHealth(health);
 
@@ -80,16 +80,8 @@ export default function App() {
     initialize();
   }, []);
 
-  // Apply dark class to <html> so SVG/Recharts CSS vars inherit correctly
-  useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDark]);
+  //  without Apply dark class to <html> so SVG/Recharts CSS vars inherit correctly
+  
 
   // Command palette keyboard shortcut
   useEffect(() => {
