@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Moon, Sun, LogOut, AlertCircle, RotateCw } from 'lucide-react';
 import { Toaster } from 'sonner';
 import { useAuth } from '../contexts/AuthContext';
-import { initializeUrlConfig, getApiUrl } from '../services/urlConfig';
+import { initializeUrlConfig } from '../services/urlConfig';
 import { checkBackendConnection, type HealthCheckResult } from '../services/healthCheck';
 import { apiClient } from '../services/apiClient';
 import Dashboard from './components/Dashboard';
