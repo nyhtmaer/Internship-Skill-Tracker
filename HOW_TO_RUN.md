@@ -1,4 +1,4 @@
-# 🚀 Complete How to Run Guide
+#  Complete How to Run Guide
 
 ## ✅ PROJECT STATUS: FULLY VERIFIED & READY TO RUN
 
@@ -13,7 +13,7 @@ All 4 developmental phases have been implemented, tested, and verified working c
 
 ---
 
-## 📋 PREREQUISITES
+##  PREREQUISITES
 
 Before starting the application, ensure you have:
 
@@ -47,7 +47,7 @@ mongo --eval "db.version()"
 
 ---
 
-## 🎯 QUICK START (5 Minutes)
+##  QUICK START (5 Minutes)
 
 ### Step 1: Navigate to Project Directory
 ```bash
@@ -91,7 +91,7 @@ Open browser: http://localhost:5173
 
 ---
 
-## 🔧 DETAILED SETUP INSTRUCTIONS
+##  DETAILED SETUP INSTRUCTIONS
 
 ### Complete Setup with Dependencies Installation
 
@@ -189,7 +189,7 @@ Navigate to: http://localhost:5173
 
 ---
 
-## ✅ TESTING CHECKLIST
+##  TESTING CHECKLIST
 
 After starting both backend and frontend, verify functionality:
 
@@ -247,7 +247,7 @@ curl http://localhost:5000/api/v1/health
 
 ---
 
-## 🌐 API ENDPOINTS (17 Total)
+##  API ENDPOINTS (17 Total)
 
 ### Authentication (Public)
 | Method | Endpoint | Purpose |
@@ -374,7 +374,7 @@ Internship-Skill-Tracker/
 
 ---
 
-## ⚙️ ENVIRONMENT CONFIGURATION
+##  ENVIRONMENT CONFIGURATION
 
 ### Backend (.env file)
 
@@ -412,7 +412,7 @@ VITE_APP_ENV=development
 
 ---
 
-## 🐛 TROUBLESHOOTING
+##  TROUBLESHOOTING
 
 ### Issue 1: MongoDB Connection Failed
 **Error**: `MongooseError: getaddrinfo ENOTFOUND localhost`
@@ -486,7 +486,7 @@ npm install --legacy-peer-deps
 
 ---
 
-## 🚀 PRODUCTION DEPLOYMENT
+##  PRODUCTION DEPLOYMENT
 
 ### Pre-Deployment Checklist
 - [ ] Update `JWT_SECRET` to strong random string
@@ -514,7 +514,7 @@ npm run build
 
 ---
 
-## 📊 PHASE IMPLEMENTATION SUMMARY
+##  PHASE IMPLEMENTATION SUMMARY
 
 ### Phase 1: Server Bootstrap & Database ✅
 - Express server on port 5000
@@ -564,7 +564,7 @@ npm run build
 
 ---
 
-## 🎯 WHAT YOU CAN DO WITH THIS APPLICATION
+##  WHAT YOU CAN DO WITH THIS APPLICATION
 
 ✅ **Create and manage skills** with levels and tracking dates
 ✅ **Record internships and certifications** with dates and organizations
@@ -578,7 +578,7 @@ npm run build
 
 ---
 
-## 📞 QUICK REFERENCE
+##  QUICK REFERENCE
 
 ### Most Common Commands
 
@@ -624,9 +624,19 @@ db.skills.find()
 
 ---
 
-## ✨ YOU'RE ALL SET!
+##  YOU'RE ALL SET!
 
 The application is fully implemented, tested, and ready to run. Follow the **Quick Start** section above to get started in 5 minutes.
+ 
+ 
+ 
+ ## FAQ
+
+**Q: Is my resume data private?**
+A: 100%. Your file stays on your device. It's sent to OpenAI for analysis, but OpenAI doesn't store it (API request, not chat history). Never stored server-side.
+
+**Q: Can I run this offline?**
+A: The PDF parsing is client-side (works offline), but AI analysis requires an API key and internet. Future version could use local LLMs (Ollama) for completely offline operation.
 
 **Questions?** Check the troubleshooting section or review the implementation files listed in the project structure.
 
