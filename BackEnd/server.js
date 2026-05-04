@@ -3,17 +3,23 @@ dotenv.config();
 
 import express from 'express';
 import cors from 'cors';
+import passport from 'passport';
+import { initPassport } from './config/passport.js';
 import connectDB from './config/database.js';
 import apiRoutes from './routes/index.js';
 import startSkillDecayJob from './jobs/skillDecayJob.js';
+
+// Register OAuth strategies (must be after dotenv.config())
+initPassport(passport);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(passport.initialize());
 
 // Serve uploaded files as static assets
 app.use('/uploads', express.static('./uploads'));
