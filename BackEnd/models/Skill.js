@@ -18,9 +18,18 @@ const skillSchema = new mongoose.Schema(
       min: 1,
       max: 5,
     },
+    category: {
+      type: String,
+      enum: ['Frontend', 'Backend', 'Languages', 'Database', 'DevOps', 'Tools', 'Soft Skills', 'Other'],
+      default: 'Other',
+    },
     last_updated: {
       type: Date,
       default: Date.now,
+    },
+    last_level: {
+      type: Number,
+      default: null,
     },
   },
   {

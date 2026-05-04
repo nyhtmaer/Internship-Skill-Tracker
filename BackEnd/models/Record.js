@@ -20,12 +20,21 @@ const recordSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Organization (company or issuing body) is required'],
     },
+    location: {
+      type: String,
+      default: '',
+    },
     start_date: {
       type: Date,
       required: [true, 'Start date is required'],
     },
     end_date: {
       type: Date,
+    },
+    status: {
+      type: String,
+      enum: ['active', 'completed'],
+      default: 'completed',
     },
     description: {
       type: String,
@@ -37,6 +46,10 @@ const recordSchema = new mongoose.Schema(
         ref: 'Skill',
       },
     ],
+    projects: [{
+      type: String,
+      default: '',
+    }],
     evidence_file: {
       type: String, // URL string for evidence
       default: null,

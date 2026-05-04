@@ -3,6 +3,14 @@ import { Skill } from '../models/index.js';
 
 const router = express.Router();
 
+// Helper function to determine trend
+const getTrend = (currentLevel, lastLevel) => {
+  if (lastLevel === null || lastLevel === undefined) return 'stable';
+  if (currentLevel > lastLevel) return 'growing';
+  if (currentLevel < lastLevel) return 'decaying';
+  return 'stable';
+};
+
 // Helper function to calculate decay status
 const getDecayStatus = (lastUpdated) => {
   const now = new Date();
@@ -21,7 +29,7 @@ const getDecayStatus = (lastUpdated) => {
 // The user_id comes from the JWT token, not from request body
 router.post('/', async (req, res) => {
   try {
-    const { skill_name, skill_level } = req.body;
+    const { skill_name, skill_level, category } = req.body;
     const user_id = req.user.user_id; // From JWT token
 
     if (!skill_name || !skill_level) {
@@ -42,6 +50,8 @@ router.post('/', async (req, res) => {
       user_id,
       skill_name: skill_name.toLowerCase(),
       skill_level,
+      category: category || 'Other',
+      last_level: null,
       last_updated: new Date(),
     });
 
@@ -72,6 +82,7 @@ router.get('/', async (req, res) => {
     const skillsWithDecay = skills.map((skill) => ({
       ...skill.toObject(),
       decay_status: getDecayStatus(skill.last_updated),
+      trend: getTrend(skill.skill_level, skill.last_level),
     }));
 
     res.status(200).json({
@@ -109,6 +120,7 @@ router.get('/:id', async (req, res) => {
 
     const skillData = skill.toObject();
     skillData.decay_status = getDecayStatus(skill.last_updated);
+    skillData.trend = getTrend(skill.skill_level, skill.last_level);
 
     res.status(200).json({
       success: true,
@@ -126,7 +138,7 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const user_id = req.user.user_id; // From JWT token
-    const { skill_level } = req.body;
+    const { skill_level, category } = req.body;
 
     if (skill_level && (skill_level < 1 || skill_level > 5)) {
       return res.status(400).json({
@@ -153,17 +165,28 @@ router.put('/:id', async (req, res) => {
       });
     }
 
+    const updateData = {
+      last_updated: new Date(),
+    };
+
+    if (skill_level) {
+      updateData.last_level = existingSkill.skill_level;
+      updateData.skill_level = skill_level;
+    }
+
+    if (category) {
+      updateData.category = category;
+    }
+
     const skill = await Skill.findByIdAndUpdate(
       req.params.id,
-      {
-        skill_level,
-        last_updated: new Date(), // Auto-update last_updated
-      },
+      updateData,
       { new: true, runValidators: true }
     );
 
     const skillData = skill.toObject();
     skillData.decay_status = getDecayStatus(skill.last_updated);
+    skillData.trend = getTrend(skill.skill_level, skill.last_level);
 
     res.status(200).json({
       success: true,

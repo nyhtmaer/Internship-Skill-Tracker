@@ -7,7 +7,7 @@ const router = express.Router();
 // The user_id comes from the JWT token, not from request body
 router.post('/', async (req, res) => {
   try {
-    const { type, title, organization, start_date, end_date, description, linked_skills, evidence_file } = req.body;
+    const { type, title, organization, location, start_date, end_date, description, linked_skills, projects, evidence_file, status } = req.body;
     const user_id = req.user.user_id; // From JWT token
 
     if (!type || !title || !organization || !start_date) {
@@ -29,10 +29,13 @@ router.post('/', async (req, res) => {
       type,
       title,
       organization,
+      location: location || '',
       start_date,
       end_date: end_date || null,
+      status: status || 'completed',
       description: description || '',
       linked_skills: linked_skills || [],
+      projects: projects || [],
       evidence_file: evidence_file || null,
     });
 
@@ -108,7 +111,7 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const user_id = req.user.user_id; // From JWT token
-    const { title, organization, start_date, end_date, description, linked_skills, evidence_file } = req.body;
+    const { title, organization, location, start_date, end_date, description, linked_skills, projects, evidence_file, status } = req.body;
 
     // Fetch existing record to validate ownership
     const existingRecord = await Record.findById(req.params.id);
@@ -133,10 +136,13 @@ router.put('/:id', async (req, res) => {
       {
         title,
         organization,
+        location,
         start_date,
         end_date,
+        status,
         description,
         linked_skills,
+        projects,
         evidence_file,
       },
       { new: true, runValidators: true }
