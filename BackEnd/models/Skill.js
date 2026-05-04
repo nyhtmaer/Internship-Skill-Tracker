@@ -12,11 +12,17 @@ const skillSchema = new mongoose.Schema(
       required: [true, 'Skill name is required'],
       lowercase: true,
     },
+    category: {
+      type: String,
+      required: [true, 'Category is required'],
+      default: 'Tools',
+    },
     skill_level: {
       type: Number,
       required: [true, 'Skill level is required'],
-      min: 1,
-      max: 5,
+      min: 0,
+      max: 100,
+      default: 0,
     },
     last_updated: {
       type: Date,

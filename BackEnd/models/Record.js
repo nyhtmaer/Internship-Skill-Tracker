@@ -31,6 +31,40 @@ const recordSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    // Internship Specific Fields
+    location: {
+      type: String,
+    },
+    status: {
+      type: String,
+      enum: ['active', 'completed', 'expiring', 'expired'],
+      default: 'completed',
+    },
+    projects: [
+      {
+        type: String,
+      },
+    ],
+    impact: [
+      {
+        metric: String,
+        before: Number,
+        after: Number,
+        growth: Number,
+      },
+    ],
+    // Certification Specific Fields
+    credentialId: {
+      type: String,
+    },
+    verificationUrl: {
+      type: String,
+    },
+    difficulty: {
+      type: String,
+      enum: ['Beginner', 'Intermediate', 'Advanced'],
+    },
+    // Relations and Media
     linked_skills: [
       {
         type: mongoose.Schema.Types.ObjectId,

@@ -3,6 +3,17 @@ import { User } from '../models/index.js';
 
 const router = express.Router();
 
+// Get current authenticated user (from JWT)
+router.get('/me', async (req, res) => {
+  try {
+    const user = await User.findById(req.user.user_id).select('-password_hash');
+    if (!user) return res.status(404).json({ error: 'User not found', status: 404 });
+    res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    res.status(500).json({ error: error.message || 'Failed to fetch user', status: 500 });
+  }
+});
+
 // Create a new user
 router.post('/', async (req, res) => {
   try {
