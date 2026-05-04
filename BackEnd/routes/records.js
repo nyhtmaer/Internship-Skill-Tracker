@@ -7,7 +7,7 @@ const router = express.Router();
 // The user_id comes from the JWT token, not from request body
 router.post('/', async (req, res) => {
   try {
-    const { type, title, organization, location, start_date, end_date, description, linked_skills, projects, evidence_file, status } = req.body;
+    const { type, title, organization, location, start_date, end_date, description, linked_skills, projects, status } = req.body;
     const user_id = req.user.user_id; // From JWT token
 
     if (!type || !title || !organization || !start_date) {
@@ -36,7 +36,7 @@ router.post('/', async (req, res) => {
       description: description || '',
       linked_skills: linked_skills || [],
       projects: projects || [],
-      evidence_file: evidence_file || null,
+      evidence_files: [],
     });
 
     await record.save();
@@ -60,6 +60,7 @@ router.get('/', async (req, res) => {
     
     const records = await Record.find({ user_id })
       .populate('linked_skills')
+      .populate('evidence_files')
       .sort({ start_date: -1 });
 
     res.status(200).json({
@@ -78,7 +79,9 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const user_id = req.user.user_id; // From JWT token
-    const record = await Record.findById(req.params.id).populate('linked_skills');
+    const record = await Record.findById(req.params.id)
+      .populate('linked_skills')
+      .populate('evidence_files');
 
     if (!record) {
       return res.status(404).json({
@@ -111,7 +114,7 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const user_id = req.user.user_id; // From JWT token
-    const { title, organization, location, start_date, end_date, description, linked_skills, projects, evidence_file, status } = req.body;
+    const { title, organization, location, start_date, end_date, description, linked_skills, projects, status } = req.body;
 
     // Fetch existing record to validate ownership
     const existingRecord = await Record.findById(req.params.id);
@@ -143,10 +146,9 @@ router.put('/:id', async (req, res) => {
         description,
         linked_skills,
         projects,
-        evidence_file,
       },
       { new: true, runValidators: true }
-    ).populate('linked_skills');
+    ).populate('linked_skills').populate('evidence_files');
 
     res.status(200).json({
       success: true,

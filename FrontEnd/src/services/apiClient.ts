@@ -2,9 +2,10 @@
  * API Client Service
  * Centralized HTTP client for all backend API calls
  * Handles authentication, error handling, and request/response formatting
+ * Uses dynamic URL configuration from urlConfig service
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+import { getConfig } from './urlConfig';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -27,8 +28,28 @@ interface AuthResponse {
 class ApiClient {
   private baseURL: string;
 
-  constructor(baseURL: string = API_BASE_URL) {
+  constructor(baseURL: string = import.meta.env.VITE_API_URL || 'http://localhost:5000') {
     this.baseURL = baseURL;
+  }
+
+  /**
+   * Update the base URL (called after urlConfig initialization)
+   */
+  updateBaseURL(newURL: string): void {
+    this.baseURL = newURL;
+    console.log('✅ API base URL updated to:', this.baseURL);
+  }
+
+  /**
+   * Get the current base URL
+   */
+  getBaseURL(): string {
+    try {
+      return getConfig().apiUrl;
+    } catch {
+      // Fallback if urlConfig not initialized yet
+      return this.baseURL;
+    }
   }
 
   private getAuthToken(): string | null {
@@ -69,7 +90,8 @@ class ApiClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
-    const url = `${this.baseURL}${endpoint}`;
+    const baseURL = this.getBaseURL();
+    const url = `${baseURL}${endpoint}`;
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -100,7 +122,8 @@ class ApiClient {
   }
 
   async requestBlob(endpoint: string, options: RequestInit = {}): Promise<Blob> {
-    const url = `${this.baseURL}${endpoint}`;
+    const baseURL = this.getBaseURL();
+    const url = `${baseURL}${endpoint}`;
     const headers: HeadersInit = {
       ...options.headers,
     };
@@ -201,13 +224,14 @@ class ApiClient {
 
   // Evidence Endpoints
   async uploadEvidence(formData: FormData) {
+    const baseURL = this.getBaseURL();
     const headers: HeadersInit = {};
     const token = this.getAuthToken();
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${this.baseURL}/api/v1/evidence`, {
+    const response = await fetch(`${baseURL}/api/v1/evidence`, {
       method: 'POST',
       headers,
       body: formData,
@@ -218,6 +242,19 @@ class ApiClient {
     }
 
     return response.json();
+  }
+
+  async getEvidence(recordId?: string) {
+    const query = recordId ? `?record_id=${recordId}` : '';
+    return this.request(`/api/v1/evidence${query}`, { method: 'GET' });
+  }
+
+  async deleteEvidence(evidenceId: string) {
+    return this.request(`/api/v1/evidence/${evidenceId}`, { method: 'DELETE' });
+  }
+
+  async linkEvidenceToRecord(evidenceId: string, recordId: string) {
+    return this.request(`/api/v1/evidence/${evidenceId}/link/${recordId}`, { method: 'PUT' });
   }
 
   // Analytics Endpoints

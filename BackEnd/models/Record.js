@@ -50,10 +50,12 @@ const recordSchema = new mongoose.Schema(
       type: String,
       default: '',
     }],
-    evidence_file: {
-      type: String, // URL string for evidence
-      default: null,
-    },
+    evidence_files: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Evidence',
+      },
+    ],
   },
   {
     timestamps: true,

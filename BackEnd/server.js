@@ -27,6 +27,18 @@ app.get('/api/v1/health', (req, res) => {
   });
 });
 
+// Configuration endpoint
+app.get('/api/v1/config', (req, res) => {
+  res.status(200).json({
+    success: true,
+    data: {
+      apiUrl: process.env.BASE_URL || `http://localhost:${PORT}`,
+      fileUploadUrl: `${process.env.BASE_URL || `http://localhost:${PORT}`}/uploads`,
+      environment: process.env.NODE_ENV || 'development',
+    },
+  });
+});
+
 // Mount API routes
 app.use('/api/v1', apiRoutes);
 
