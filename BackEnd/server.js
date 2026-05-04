@@ -10,7 +10,7 @@ import startSkillDecayJob from './jobs/skillDecayJob.js';
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// HTTP middleware stack
+// HTTP middleware configuration
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
