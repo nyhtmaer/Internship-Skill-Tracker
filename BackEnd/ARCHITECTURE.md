@@ -115,29 +115,30 @@ GET /api/v1/portfolio/export
 ## Security Architecture
 
 ### 1. Authentication Layer
-- **JWT Tokens**: 
-  - Payload: `{ user_id, iat, exp }`
-  - Secret: `process.env.JWT_SECRET` (required)
-  - Expiry: 30 minutes
-  - Format: Bearer token in Authorization header
-  
+
+- **JWT Tokens**:
+  - Payload structure: `{ user_id, iat, exp }`
+  - Secret key: `process.env.JWT_SECRET` (required)
+  - Token expiry: 30 minutes
+  - Token format: Bearer token sent in Authorization header
+
 - **Password Security**:
-  - Hashed with bcryptjs (10 salt rounds)
-  - Never returned in queries (select: false)
-  - Compared on login with `.comparePassword()` method
+  - Hashed using bcryptjs (10 salt rounds)
+  - Excluded from queries (`select: false`)
+  - Verified on login using `.comparePassword()` method
 
 ### 2. Authorization Layer
-- **User Isolation**:
-  - All protected routes require valid JWT
-  - `req.user.user_id` extracted from token
-  - All queries filtered by: `{ user_id: req.user.user_id }`
-  - Users cannot access other users' data
-  
-- **HTTP Status Codes**:
-  - 403: Missing/invalid token or expired
-  - 404: Resource not found or doesn't belong to user
-  - 401: Would be used for general auth failures
 
+- **User Isolation**:
+  - All protected routes require valid JWT token
+  - `req.user.user_id` extracted from decoded token
+  - All database queries filtered by: `{ user_id: req.user.user_id }`
+  - Users cannot access or modify other users' data
+
+- **HTTP Status Codes**:
+  - 403: Missing token, invalid token, or token expired
+  - 404: Resource not found or does not belong to authenticated user
+  - 401: General authentication failure (fallback)
 ### 3. File Upload Security
 - **Type Whitelist**: jpg, jpeg, png, gif, pdf only
 - **Size Limit**: 5MB per file
