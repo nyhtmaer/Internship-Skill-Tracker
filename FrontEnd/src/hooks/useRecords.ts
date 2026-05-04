@@ -27,8 +27,7 @@ export function useRecords() {
         setRecords(response.data);
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch records';
-      setError(message);
+      setError(err instanceof Error ? err.message : 'Failed to fetch records');
     } finally {
       setIsLoading(false);
     }
@@ -38,17 +37,15 @@ export function useRecords() {
     fetchRecords();
   }, []);
 
+  // Simplified mutation handlers
   const addRecord = async (recordData: Omit<Record, '_id'>) => {
     setError(null);
     try {
       const response = await apiClient.addRecord(recordData);
-      if (response.success) {
-        await fetchRecords();
-      }
+      if (response.success) await fetchRecords();
       return response;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to add record';
-      setError(message);
+      setError(err instanceof Error ? err.message : 'Failed to add record');
       throw err;
     }
   };
@@ -57,13 +54,10 @@ export function useRecords() {
     setError(null);
     try {
       const response = await apiClient.updateRecord(recordId, recordData);
-      if (response.success) {
-        await fetchRecords();
-      }
+      if (response.success) await fetchRecords();
       return response;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to update record';
-      setError(message);
+      setError(err instanceof Error ? err.message : 'Failed to update record');
       throw err;
     }
   };
@@ -72,13 +66,10 @@ export function useRecords() {
     setError(null);
     try {
       const response = await apiClient.deleteRecord(recordId);
-      if (response.success) {
-        await fetchRecords();
-      }
+      if (response.success) await fetchRecords();
       return response;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to delete record';
-      setError(message);
+      setError(err instanceof Error ? err.message : 'Failed to delete record');
       throw err;
     }
   };
