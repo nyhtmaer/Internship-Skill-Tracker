@@ -10,7 +10,7 @@ import startSkillDecayJob from './jobs/skillDecayJob.js';
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
+// HTTP middleware stack
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 // Serve uploaded files as static assets
 app.use('/uploads', express.static('./uploads'));
 
-// Health check endpoint
+// API health check endpoint
 app.get('/api/v1/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
@@ -42,7 +42,7 @@ app.get('/api/v1/config', (req, res) => {
 // Mount API routes
 app.use('/api/v1', apiRoutes);
 
-// 404 handler
+// Handle 404 - route not found
 app.use((req, res) => {
   res.status(404).json({
     error: 'Route not found',
