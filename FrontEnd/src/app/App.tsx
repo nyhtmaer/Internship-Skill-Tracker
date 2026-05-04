@@ -53,7 +53,7 @@ export default function App() {
         
         // Initialize URL configuration from backend
         const config = await initializeUrlConfig();
-        console.log('✅ URL configuration initialized:', config);
+        console.log(' URL configuration initialized:', config);
 
         // Update API client with configured URL
         apiClient.updateBaseURL(config.apiUrl);
@@ -63,10 +63,10 @@ export default function App() {
         setBackendHealth(health);
 
         if (!health.isHealthy) {
-          console.error('⚠️ Backend health check failed:', health.error);
+          console.error(' Backend health check failed:', health.error);
         }
       } catch (error) {
-        console.error('❌ Initialization failed:', error);
+        console.error(' Initialization failed:', error);
         setBackendHealth({
           isHealthy: false,
           apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:5000',
@@ -229,7 +229,7 @@ export default function App() {
               </button>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-6 text-center">
-              ✅ Tip: Ensure the backend server is running on <code className="bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{backendHealth.apiUrl}</code>
+               Tip: Ensure the backend server is running on <code className="bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{backendHealth.apiUrl}</code>
             </p>
           </div>
         </div>
@@ -250,7 +250,7 @@ export default function App() {
                     {currentPage === 'dashboard' ? (
                       <>
                         <h1 className="text-2xl font-semibold tracking-tight">
-                          {getGreeting()}, {user?.name} 👋
+                          {getGreeting()}, {user?.name} 
                         </h1>
                         <p className="text-sm text-muted-foreground mt-0.5">
                           Here's your career snapshot for today
