@@ -9,20 +9,26 @@ const recordSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['internship', 'certification'],
+      enum: {
+        values: ['internship', 'certification'],
+        message: '{VALUE} is not a valid type',
+      },
       required: [true, 'Type (internship or certification) is required'],
     },
     title: {
       type: String,
       required: [true, 'Title is required'],
+      trim: true,
     },
     organization: {
       type: String,
       required: [true, 'Organization (company or issuing body) is required'],
+      trim: true,
     },
     location: {
       type: String,
       default: '',
+      trim: true,
     },
     start_date: {
       type: Date,
@@ -30,15 +36,20 @@ const recordSchema = new mongoose.Schema(
     },
     end_date: {
       type: Date,
+      default: null,
     },
     status: {
       type: String,
-      enum: ['active', 'completed'],
+      enum: {
+        values: ['active', 'completed'],
+        message: '{VALUE} is not a valid status',
+      },
       default: 'completed',
     },
     description: {
       type: String,
       default: '',
+      trim: true,
     },
     linked_skills: [
       {
@@ -46,10 +57,12 @@ const recordSchema = new mongoose.Schema(
         ref: 'Skill',
       },
     ],
-    projects: [{
-      type: String,
-      default: '',
-    }],
+    projects: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
     evidence_files: [
       {
         type: mongoose.Schema.Types.ObjectId,
