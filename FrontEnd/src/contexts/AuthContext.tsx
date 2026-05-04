@@ -86,6 +86,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('authToken');
   };
 
+  
+  const session = async (email: string, password: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await apiClient.login(email, password);
+      if (response.success && response.user) {
+        setUser(response.user);
+        localStorage.setItem('user', JSON.stringify(response.user));
+      } else {
+        throw new Error(response.message || 'Login invalid');
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Login invalid';
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(true);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -103,6 +124,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
